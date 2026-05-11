@@ -15,8 +15,12 @@ const links = [
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("inicio");
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isHome = pathname === "/";
 
   useEffect(() => {
+    if (!isHome) return;
     const sections = links
       .map((l) => document.getElementById(l.target))
       .filter((el): el is HTMLElement => !!el);
@@ -32,9 +36,14 @@ export function Navbar() {
     );
     sections.forEach((s) => io.observe(s));
     return () => io.disconnect();
-  }, []);
+  }, [isHome]);
 
   const scrollTo = (id: string) => {
+    if (!isHome) {
+      navigate({ to: "/", hash: id === "inicio" ? undefined : id });
+      setOpen(false);
+      return;
+    }
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     setOpen(false);
