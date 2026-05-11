@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Hero } from "@/components/ncc/Hero";
 import { MisionVision } from "@/components/ncc/MisionVision";
-import { Etapas } from "@/components/ncc/Etapas";
 import { StageGate } from "@/components/ncc/StageGate";
+import { Contacto } from "@/components/ncc/Contacto";
 import { Footer } from "@/components/ncc/Footer";
 
 export const Route = createFileRoute("/")({
@@ -27,7 +27,6 @@ function Index() {
       <main>
         <Hero />
         <MisionVision />
-        <Etapas />
         <StageGate
           id="alpha"
           label="ALPHA"
@@ -53,6 +52,7 @@ function Index() {
           successMessage="Bienvenido a la Etapa Omega. El contenido de esta etapa estará disponible próximamente."
           labelOnDarkStrip
         />
+        <Contacto />
       </main>
       <Footer />
     </div>
