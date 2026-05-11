@@ -38,14 +38,14 @@ export function Contacto() {
           {directors.map((d) => (
             <article
               key={d.email}
-              className="group bg-white rounded-xl border border-[var(--ncc-steel)] overflow-hidden shadow-[0_2px_12px_rgba(18,91,80,0.06)] hover:shadow-[0_8px_28px_rgba(18,91,80,0.12)] transition-shadow"
+              className="group bg-white rounded-xl border border-[var(--ncc-steel)] overflow-hidden shadow-[0_2px_12px_rgba(18,91,80,0.06)] hover:shadow-[0_8px_28px_rgba(18,91,80,0.12)] transition-shadow h-full"
             >
-              <div className="flex flex-col sm:flex-row">
-                <div className="sm:w-48 sm:shrink-0 aspect-square sm:aspect-auto overflow-hidden bg-[var(--ncc-mint)]">
+              <div className="flex flex-col sm:flex-row h-full">
+                <div className="sm:w-56 sm:shrink-0 aspect-square sm:aspect-auto sm:self-stretch overflow-hidden bg-[var(--ncc-mint)]">
                   <img
                     src={d.photo}
                     alt={d.name}
-                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                    className="w-full h-full object-cover object-center group-hover:scale-[1.03] transition-transform duration-500"
                   />
                 </div>
                 <div className="p-6 flex flex-col justify-center flex-1">
