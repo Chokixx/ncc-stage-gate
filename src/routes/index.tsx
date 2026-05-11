@@ -28,6 +28,14 @@ function Index() {
       <main>
         <Hero />
         <MisionVision />
+        <Patrocinadores />
+        <StageGate
+          id="gmat"
+          label="GMAT"
+          labelColor="#598c71"
+          borderAccent="#598c71"
+          password={import.meta.env.VITE_PASS_GMAT ?? ""}
+        />
         <StageGate
           id="alpha"
           label="ALPHA"
@@ -49,7 +57,6 @@ function Index() {
           borderAccent="#9ebcac"
           password={import.meta.env.VITE_PASS_OMEGA ?? ""}
         />
-        <Patrocinadores />
         <Contacto />
       </main>
       <Footer />
