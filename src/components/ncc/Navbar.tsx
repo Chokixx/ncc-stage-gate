@@ -5,6 +5,7 @@ const links = [
   { label: "ALPHA", target: "alpha" },
   { label: "BETA", target: "beta" },
   { label: "OMEGA", target: "omega" },
+  { label: "Contacto", target: "contacto" },
 ];
 
 export function Navbar() {
