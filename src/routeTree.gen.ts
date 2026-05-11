@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EtapaStageRouteImport } from './routes/etapa.$stage'
+import { Route as ApiPublicGmatSubmitRouteImport } from './routes/api/public/gmat/submit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const EtapaStageRoute = EtapaStageRouteImport.update({
   path: '/etapa/$stage',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicGmatSubmitRoute = ApiPublicGmatSubmitRouteImport.update({
+  id: '/api/public/gmat/submit',
+  path: '/api/public/gmat/submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/etapa/$stage': typeof EtapaStageRoute
+  '/api/public/gmat/submit': typeof ApiPublicGmatSubmitRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/etapa/$stage': typeof EtapaStageRoute
+  '/api/public/gmat/submit': typeof ApiPublicGmatSubmitRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/etapa/$stage': typeof EtapaStageRoute
+  '/api/public/gmat/submit': typeof ApiPublicGmatSubmitRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/etapa/$stage'
+  fullPaths: '/' | '/etapa/$stage' | '/api/public/gmat/submit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/etapa/$stage'
-  id: '__root__' | '/' | '/etapa/$stage'
+  to: '/' | '/etapa/$stage' | '/api/public/gmat/submit'
+  id: '__root__' | '/' | '/etapa/$stage' | '/api/public/gmat/submit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EtapaStageRoute: typeof EtapaStageRoute
+  ApiPublicGmatSubmitRoute: typeof ApiPublicGmatSubmitRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,13 +75,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EtapaStageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/gmat/submit': {
+      id: '/api/public/gmat/submit'
+      path: '/api/public/gmat/submit'
+      fullPath: '/api/public/gmat/submit'
+      preLoaderRoute: typeof ApiPublicGmatSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EtapaStageRoute: EtapaStageRoute,
+  ApiPublicGmatSubmitRoute: ApiPublicGmatSubmitRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
