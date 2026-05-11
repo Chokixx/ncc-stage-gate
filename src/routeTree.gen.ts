@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EtapaGmatRouteImport } from './routes/etapa.gmat'
 import { Route as EtapaStageRouteImport } from './routes/etapa.$stage'
+import { Route as EtapaGmatQuizRouteImport } from './routes/etapa.gmat.quiz'
 import { Route as ApiPublicGmatSubmitRouteImport } from './routes/api/public/gmat/submit'
 
 const IndexRoute = IndexRouteImport.update({
@@ -18,10 +20,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EtapaGmatRoute = EtapaGmatRouteImport.update({
+  id: '/etapa/gmat',
+  path: '/etapa/gmat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EtapaStageRoute = EtapaStageRouteImport.update({
   id: '/etapa/$stage',
   path: '/etapa/$stage',
   getParentRoute: () => rootRouteImport,
+} as any)
+const EtapaGmatQuizRoute = EtapaGmatQuizRouteImport.update({
+  id: '/quiz',
+  path: '/quiz',
+  getParentRoute: () => EtapaGmatRoute,
 } as any)
 const ApiPublicGmatSubmitRoute = ApiPublicGmatSubmitRouteImport.update({
   id: '/api/public/gmat/submit',
@@ -32,30 +44,53 @@ const ApiPublicGmatSubmitRoute = ApiPublicGmatSubmitRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/etapa/$stage': typeof EtapaStageRoute
+  '/etapa/gmat': typeof EtapaGmatRouteWithChildren
+  '/etapa/gmat/quiz': typeof EtapaGmatQuizRoute
   '/api/public/gmat/submit': typeof ApiPublicGmatSubmitRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/etapa/$stage': typeof EtapaStageRoute
+  '/etapa/gmat': typeof EtapaGmatRouteWithChildren
+  '/etapa/gmat/quiz': typeof EtapaGmatQuizRoute
   '/api/public/gmat/submit': typeof ApiPublicGmatSubmitRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/etapa/$stage': typeof EtapaStageRoute
+  '/etapa/gmat': typeof EtapaGmatRouteWithChildren
+  '/etapa/gmat/quiz': typeof EtapaGmatQuizRoute
   '/api/public/gmat/submit': typeof ApiPublicGmatSubmitRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/etapa/$stage' | '/api/public/gmat/submit'
+  fullPaths:
+    | '/'
+    | '/etapa/$stage'
+    | '/etapa/gmat'
+    | '/etapa/gmat/quiz'
+    | '/api/public/gmat/submit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/etapa/$stage' | '/api/public/gmat/submit'
-  id: '__root__' | '/' | '/etapa/$stage' | '/api/public/gmat/submit'
+  to:
+    | '/'
+    | '/etapa/$stage'
+    | '/etapa/gmat'
+    | '/etapa/gmat/quiz'
+    | '/api/public/gmat/submit'
+  id:
+    | '__root__'
+    | '/'
+    | '/etapa/$stage'
+    | '/etapa/gmat'
+    | '/etapa/gmat/quiz'
+    | '/api/public/gmat/submit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EtapaStageRoute: typeof EtapaStageRoute
+  EtapaGmatRoute: typeof EtapaGmatRouteWithChildren
   ApiPublicGmatSubmitRoute: typeof ApiPublicGmatSubmitRoute
 }
 
@@ -68,12 +103,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/etapa/gmat': {
+      id: '/etapa/gmat'
+      path: '/etapa/gmat'
+      fullPath: '/etapa/gmat'
+      preLoaderRoute: typeof EtapaGmatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/etapa/$stage': {
       id: '/etapa/$stage'
       path: '/etapa/$stage'
       fullPath: '/etapa/$stage'
       preLoaderRoute: typeof EtapaStageRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/etapa/gmat/quiz': {
+      id: '/etapa/gmat/quiz'
+      path: '/quiz'
+      fullPath: '/etapa/gmat/quiz'
+      preLoaderRoute: typeof EtapaGmatQuizRouteImport
+      parentRoute: typeof EtapaGmatRoute
     }
     '/api/public/gmat/submit': {
       id: '/api/public/gmat/submit'
@@ -85,9 +134,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface EtapaGmatRouteChildren {
+  EtapaGmatQuizRoute: typeof EtapaGmatQuizRoute
+}
+
+const EtapaGmatRouteChildren: EtapaGmatRouteChildren = {
+  EtapaGmatQuizRoute: EtapaGmatQuizRoute,
+}
+
+const EtapaGmatRouteWithChildren = EtapaGmatRoute._addFileChildren(
+  EtapaGmatRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EtapaStageRoute: EtapaStageRoute,
+  EtapaGmatRoute: EtapaGmatRouteWithChildren,
   ApiPublicGmatSubmitRoute: ApiPublicGmatSubmitRoute,
 }
 export const routeTree = rootRouteImport
