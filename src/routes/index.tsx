@@ -1,26 +1,60 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Navbar } from "@/components/ncc/Navbar";
+import { Hero } from "@/components/ncc/Hero";
+import { MisionVision } from "@/components/ncc/MisionVision";
+import { Etapas } from "@/components/ncc/Etapas";
+import { StageGate } from "@/components/ncc/StageGate";
+import { Footer } from "@/components/ncc/Footer";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    meta: [
+      { title: "National Case Competition — Train. Compete. Become." },
+      {
+        name: "description",
+        content:
+          "NCC: la competencia universitaria de consultoría estratégica. Vivir la consultoría desde la universidad.",
+      },
+    ],
+  }),
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-[var(--ncc-cream)]">
+      <Navbar />
+      <main>
+        <Hero />
+        <MisionVision />
+        <Etapas />
+        <StageGate
+          id="alpha"
+          label="ALPHA"
+          labelColor="#598c71"
+          borderAccent="#598c71"
+          password={import.meta.env.VITE_PASS_ALPHA ?? ""}
+          successMessage="Bienvenido a la Etapa Alpha. El contenido de esta etapa estará disponible próximamente."
+        />
+        <StageGate
+          id="beta"
+          label="BETA"
+          labelColor="#125b50"
+          borderAccent="#125b50"
+          password={import.meta.env.VITE_PASS_BETA ?? ""}
+          successMessage="Bienvenido a la Etapa Beta. El contenido de esta etapa estará disponible próximamente."
+        />
+        <StageGate
+          id="omega"
+          label="OMEGA"
+          labelColor="#9ebcac"
+          borderAccent="#9ebcac"
+          password={import.meta.env.VITE_PASS_OMEGA ?? ""}
+          successMessage="Bienvenido a la Etapa Omega. El contenido de esta etapa estará disponible próximamente."
+          labelOnDarkStrip
+        />
+      </main>
+      <Footer />
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
