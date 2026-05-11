@@ -34,7 +34,7 @@ export function Contacto() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mt-12">
+        <div className="grid md:grid-cols-2 gap-6 mt-12 auto-rows-fr">
           {directors.map((d) => (
             <article
               key={d.email}
