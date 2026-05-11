@@ -65,7 +65,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
               total: GMAT_QUESTIONS.length,
               started_at: startedAt ?? null,
             })
-            .select("id")
+            .select("id, submitted_at, started_at")
             .single();
 
           if (error) {
@@ -76,8 +76,29 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             );
           }
 
-          // TODO: Enviar correo a ncc@uniandes.edu.co con CC a Lia y Juan Camilo
-          // cuando el dominio de envío esté verificado.
+          // Sincronizar Google Sheets (no rompe la respuesta si falla)
+          try {
+            const { appendResultRow, rewriteTop50 } = await import(
+              "@/lib/ncc/gmat-sheets.server"
+            );
+            await appendResultRow({
+              team,
+              score,
+              total: GMAT_QUESTIONS.length,
+              started_at: data.started_at ?? startedAt ?? null,
+              submitted_at: data.submitted_at,
+            });
+            const { data: allRows, error: listErr } = await admin
+              .from("gmat_submissions")
+              .select("team, score, total, started_at, submitted_at")
+              .order("score", { ascending: false })
+              .order("submitted_at", { ascending: true })
+              .limit(500);
+            if (listErr) throw listErr;
+            await rewriteTop50((allRows ?? []) as never);
+          } catch (sheetErr) {
+            console.error("[gmat/submit] sheets sync error", sheetErr);
+          }
 
           return Response.json({
             ok: true,
