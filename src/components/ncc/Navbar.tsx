@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { NCCLogo } from "./Logo";
 
 const links = [
