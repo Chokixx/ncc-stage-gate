@@ -3,6 +3,7 @@ import { Navbar } from "@/components/ncc/Navbar";
 import { Hero } from "@/components/ncc/Hero";
 import { MisionVision } from "@/components/ncc/MisionVision";
 import { StageGate } from "@/components/ncc/StageGate";
+import { Patrocinadores } from "@/components/ncc/Patrocinadores";
 import { Contacto } from "@/components/ncc/Contacto";
 import { Footer } from "@/components/ncc/Footer";
 
@@ -33,7 +34,6 @@ function Index() {
           labelColor="#598c71"
           borderAccent="#598c71"
           password={import.meta.env.VITE_PASS_ALPHA ?? ""}
-          successMessage="Bienvenido a la Etapa Alpha. El contenido de esta etapa estará disponible próximamente."
         />
         <StageGate
           id="beta"
@@ -41,7 +41,6 @@ function Index() {
           labelColor="#125b50"
           borderAccent="#125b50"
           password={import.meta.env.VITE_PASS_BETA ?? ""}
-          successMessage="Bienvenido a la Etapa Beta. El contenido de esta etapa estará disponible próximamente."
         />
         <StageGate
           id="omega"
@@ -49,8 +48,8 @@ function Index() {
           labelColor="#125b50"
           borderAccent="#9ebcac"
           password={import.meta.env.VITE_PASS_OMEGA ?? ""}
-          successMessage="Bienvenido a la Etapa Omega. El contenido de esta etapa estará disponible próximamente."
         />
+        <Patrocinadores />
         <Contacto />
       </main>
       <Footer />
