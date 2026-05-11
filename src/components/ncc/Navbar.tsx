@@ -5,10 +5,11 @@ import { NCCLogo } from "./Logo";
 
 const links = [
   { label: "Inicio", target: "inicio" },
+  { label: "Patrocinadores", target: "patrocinadores" },
+  { label: "GMAT", target: "gmat" },
   { label: "ALPHA", target: "alpha" },
   { label: "BETA", target: "beta" },
   { label: "OMEGA", target: "omega" },
-  { label: "Patrocinadores", target: "patrocinadores" },
   { label: "Contacto", target: "contacto" },
 ];
 
@@ -58,7 +59,7 @@ export function Navbar() {
         className={[
           mobile
             ? "text-left px-3 py-3 text-sm font-medium rounded-md transition-colors"
-            : "relative px-3 lg:px-4 py-2 text-sm font-medium rounded-md transition-colors",
+            : "relative px-2 lg:px-3 py-2 text-sm font-medium rounded-md transition-colors",
           isActive
             ? "text-[var(--ncc-deep)] bg-[var(--ncc-mint)]"
             : "text-[var(--ncc-deep)]/80 hover:text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)]",
@@ -66,7 +67,7 @@ export function Navbar() {
       >
         {label}
         {!mobile && isActive && (
-          <span className="absolute left-3 right-3 -bottom-[1px] h-[2px] bg-[var(--ncc-deep)] rounded-full" />
+          <span className="absolute left-2 right-2 -bottom-[1px] h-[2px] bg-[var(--ncc-deep)] rounded-full" />
         )}
       </button>
     );
@@ -86,7 +87,7 @@ export function Navbar() {
           </span>
         </button>
 
-        <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+        <nav className="hidden md:flex items-center gap-1">
           {links.map((l) => navBtn(l.target, l.label))}
         </nav>
 
@@ -100,7 +101,7 @@ export function Navbar() {
       </div>
 
       <div
-        className={`md:hidden overflow-hidden transition-[max-height] duration-300 ease-out ${open ? "max-h-96" : "max-h-0"}`}
+        className={`md:hidden overflow-hidden transition-[max-height] duration-300 ease-out ${open ? "max-h-[480px]" : "max-h-0"}`}
       >
         <nav className="border-t border-[var(--ncc-steel)] bg-white">
           <div className="max-w-7xl mx-auto px-5 py-2 flex flex-col">

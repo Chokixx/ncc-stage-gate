@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      gmat_submissions: {
+        Row: {
+          answers: Json
+          created_at: string
+          email_sent: boolean
+          id: string
+          score: number
+          started_at: string | null
+          submitted_at: string
+          team: string
+          total: number
+        }
+        Insert: {
+          answers?: Json
+          created_at?: string
+          email_sent?: boolean
+          id?: string
+          score?: number
+          started_at?: string | null
+          submitted_at?: string
+          team: string
+          total?: number
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          email_sent?: boolean
+          id?: string
+          score?: number
+          started_at?: string | null
+          submitted_at?: string
+          team?: string
+          total?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

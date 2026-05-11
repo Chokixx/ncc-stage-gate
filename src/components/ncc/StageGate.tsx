@@ -3,7 +3,7 @@ import { Lock, ArrowRight } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 
 type Props = {
-  id: "alpha" | "beta" | "omega";
+  id: "gmat" | "alpha" | "beta" | "omega";
   label: string;
   labelColor: string;
   borderAccent: string;
@@ -24,7 +24,11 @@ export function StageGate({
   const [animating, setAnimating] = useState(false);
 
   const goToStage = () => {
-    navigate({ to: "/etapa/$stage", params: { stage: id } });
+    if (id === "gmat") {
+      navigate({ to: "/etapa/gmat" });
+    } else {
+      navigate({ to: "/etapa/$stage", params: { stage: id } });
+    }
   };
 
   const onSubmit = (e: FormEvent) => {
