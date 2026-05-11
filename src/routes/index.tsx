@@ -46,11 +46,10 @@ function Index() {
         <StageGate
           id="omega"
           label="OMEGA"
-          labelColor="#9ebcac"
+          labelColor="#125b50"
           borderAccent="#9ebcac"
           password={import.meta.env.VITE_PASS_OMEGA ?? ""}
           successMessage="Bienvenido a la Etapa Omega. El contenido de esta etapa estará disponible próximamente."
-          labelOnDarkStrip
         />
         <Contacto />
       </main>
