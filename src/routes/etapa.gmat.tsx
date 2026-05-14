@@ -53,11 +53,32 @@ function GmatTeamSelectPage() {
     );
   }
 
-  const onStart = () => {
+  const [checking, setChecking] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+
+  const onStart = async () => {
     if (!team) return;
-    sessionStorage.setItem("ncc_gmat_team", team);
-    sessionStorage.setItem("ncc_gmat_started_at", new Date().toISOString());
-    navigate({ to: "/etapa/gmat/quiz" });
+    setBlocked(false);
+    setChecking(true);
+    try {
+      const res = await fetch("/api/public/gmat/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ team }),
+      });
+      const data = await res.json();
+      if (data?.submitted) {
+        setBlocked(true);
+        return;
+      }
+      sessionStorage.setItem("ncc_gmat_team", team);
+      sessionStorage.setItem("ncc_gmat_started_at", new Date().toISOString());
+      navigate({ to: "/etapa/gmat/quiz" });
+    } catch {
+      alert("No se pudo verificar el equipo. Intenta de nuevo.");
+    } finally {
+      setChecking(false);
+    }
   };
 
   return (
@@ -124,12 +145,18 @@ function GmatTeamSelectPage() {
                 ))}
               </select>
 
+              {blocked && (
+                <p className="mt-3 text-sm" style={{ color: "#b3471a" }}>
+                  Este equipo ya envió el examen. No es posible reintentarlo.
+                </p>
+              )}
+
               <button
                 onClick={onStart}
-                disabled={!team}
+                disabled={!team || checking}
                 className="mt-8 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-[var(--ncc-deep)] text-white px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Siguiente
+                {checking ? "Verificando…" : "Siguiente"}
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>

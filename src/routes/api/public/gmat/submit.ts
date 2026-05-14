@@ -56,6 +56,19 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             auth: { persistSession: false, autoRefreshToken: false },
           });
 
+          // Bloquear reintentos: si ya hay envío para este equipo, rechazar.
+          const { data: existing } = await admin
+            .from("gmat_submissions")
+            .select("id")
+            .eq("team", team)
+            .maybeSingle();
+          if (existing) {
+            return Response.json(
+              { error: "Este equipo ya envió el examen." },
+              { status: 409 },
+            );
+          }
+
           const { data, error } = await admin
             .from("gmat_submissions")
             .insert({
@@ -69,6 +82,13 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             .single();
 
           if (error) {
+            // 23505 = unique_violation (carrera contra el chequeo previo)
+            if ((error as { code?: string }).code === "23505") {
+              return Response.json(
+                { error: "Este equipo ya envió el examen." },
+                { status: 409 },
+              );
+            }
             console.error("[gmat/submit] insert error", error);
             return Response.json(
               { error: "No se pudo registrar el intento" },
@@ -87,10 +107,11 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
               total: GMAT_QUESTIONS.length,
               started_at: data.started_at ?? startedAt ?? null,
               submitted_at: data.submitted_at,
+              answers,
             });
             const { data: allRows, error: listErr } = await admin
               .from("gmat_submissions")
-              .select("team, score, total, started_at, submitted_at")
+              .select("team, score, total, started_at, submitted_at, answers")
               .order("score", { ascending: false })
               .order("submitted_at", { ascending: true })
               .limit(500);
@@ -99,6 +120,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
           } catch (sheetErr) {
             console.error("[gmat/submit] sheets sync error", sheetErr);
           }
+
 
           // Notificación por correo (no rompe la respuesta si falla)
           try {
