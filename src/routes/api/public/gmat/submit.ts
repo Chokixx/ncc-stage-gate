@@ -100,6 +100,23 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             console.error("[gmat/submit] sheets sync error", sheetErr);
           }
 
+          // Notificación por correo (no rompe la respuesta si falla)
+          try {
+            const { sendGmatResultEmail } = await import(
+              "@/lib/ncc/gmat-email.server"
+            );
+            await sendGmatResultEmail({
+              team,
+              score,
+              total: GMAT_QUESTIONS.length,
+              started_at: data.started_at ?? startedAt ?? null,
+              submitted_at: data.submitted_at,
+              answers,
+            });
+          } catch (mailErr) {
+            console.error("[gmat/submit] email error", mailErr);
+          }
+
           return Response.json({
             ok: true,
             id: data.id,
