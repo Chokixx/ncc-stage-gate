@@ -425,6 +425,8 @@ function TeamsAdmin({ password }: { password: string }) {
   const list = useServerFn(adminListTeams);
   const update = useServerFn(adminUpdateTeam);
   const replace = useServerFn(adminReplaceTeams);
+  const add = useServerFn(adminAddTeam);
+  const del = useServerFn(adminDeleteTeam);
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
@@ -432,6 +434,8 @@ function TeamsAdmin({ password }: { password: string }) {
   const [showBulk, setShowBulk] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const reload = async () => {
     setLoading(true);
