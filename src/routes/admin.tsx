@@ -21,6 +21,8 @@ import {
   adminListTeams,
   adminUpdateTeam,
   adminReplaceTeams,
+  adminAddTeam,
+  adminDeleteTeam,
 } from "@/lib/ncc/admin.functions";
 
 export const Route = createFileRoute("/admin")({
