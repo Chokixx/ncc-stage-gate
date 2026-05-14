@@ -148,6 +148,47 @@ export const adminUpdateTeam = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const adminAddTeam = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z
+      .object({
+        password: z.string().min(1).max(200),
+        name: z.string().min(1).max(200),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    const { data: maxRow } = await supabaseAdmin
+      .from("gmat_teams")
+      .select("position")
+      .order("position", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const nextPos = (maxRow?.position ?? 0) + 1;
+    const { error } = await supabaseAdmin
+      .from("gmat_teams")
+      .insert({ position: nextPos, name: data.name });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminDeleteTeam = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z
+      .object({ password: z.string().min(1).max(200), id: z.string().uuid() })
+      .parse(i),
+  )
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    const { error } = await supabaseAdmin
+      .from("gmat_teams")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const adminReplaceTeams = createServerFn({ method: "POST" })
   .inputValidator((i) =>
     z

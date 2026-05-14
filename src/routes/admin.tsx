@@ -21,6 +21,8 @@ import {
   adminListTeams,
   adminUpdateTeam,
   adminReplaceTeams,
+  adminAddTeam,
+  adminDeleteTeam,
 } from "@/lib/ncc/admin.functions";
 
 export const Route = createFileRoute("/admin")({
@@ -423,6 +425,8 @@ function TeamsAdmin({ password }: { password: string }) {
   const list = useServerFn(adminListTeams);
   const update = useServerFn(adminUpdateTeam);
   const replace = useServerFn(adminReplaceTeams);
+  const add = useServerFn(adminAddTeam);
+  const del = useServerFn(adminDeleteTeam);
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
@@ -430,6 +434,8 @@ function TeamsAdmin({ password }: { password: string }) {
   const [showBulk, setShowBulk] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const reload = async () => {
     setLoading(true);
@@ -486,6 +492,33 @@ function TeamsAdmin({ password }: { password: string }) {
     }
   };
 
+  const onAdd = async () => {
+    const name = newName.trim();
+    if (!name) return;
+    setAdding(true);
+    try {
+      await add({ data: { password, name } });
+      setNewName("");
+      await reload();
+    } catch (e) {
+      console.error(e);
+      alert("Error al agregar equipo");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const onDeleteOne = async (t: Team) => {
+    if (!confirm(`¿Eliminar equipo "${t.name}"?`)) return;
+    setSavingId(t.id);
+    try {
+      await del({ data: { password, id: t.id } });
+      await reload();
+    } finally {
+      setSavingId(null);
+    }
+  };
+
   return (
     <section className="bg-white rounded-xl border border-[var(--ncc-steel)] p-6 md:p-8 shadow-[0_2px_12px_rgba(18,91,80,0.05)]">
       <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -530,6 +563,28 @@ function TeamsAdmin({ password }: { password: string }) {
         </div>
       )}
 
+      <div className="mt-4 flex flex-wrap gap-2 items-center border-t border-[var(--ncc-steel)] pt-4">
+        <input
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void onAdd();
+            }
+          }}
+          placeholder="Nombre del nuevo equipo"
+          className="flex-1 min-w-[200px] rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
+        />
+        <button
+          onClick={onAdd}
+          disabled={adding || !newName.trim()}
+          className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-md bg-[var(--ncc-deep)] text-white disabled:opacity-50"
+        >
+          <Plus className="h-4 w-4" /> {adding ? "Agregando…" : "Agregar equipo"}
+        </button>
+      </div>
+
       {loading ? (
         <p className="mt-6 text-sm text-[var(--muted-foreground)]">Cargando…</p>
       ) : (
@@ -540,6 +595,7 @@ function TeamsAdmin({ password }: { password: string }) {
               team={t}
               busy={savingId === t.id}
               onSave={(n) => onSaveOne(t, n)}
+              onDelete={() => onDeleteOne(t)}
             />
           ))}
         </div>
@@ -552,10 +608,12 @@ function TeamRow({
   team,
   busy,
   onSave,
+  onDelete,
 }: {
   team: Team;
   busy: boolean;
   onSave: (n: string) => void;
+  onDelete: () => void;
 }) {
   const [name, setName] = useState(team.name);
   useEffect(() => setName(team.name), [team.name]);
@@ -575,6 +633,14 @@ function TeamRow({
         className={`flex-1 rounded px-2 py-1 text-sm outline-none border ${dirty ? "border-[var(--ncc-deep)]" : "border-transparent"} focus:border-[var(--ncc-deep)]`}
         disabled={busy}
       />
+      <button
+        onClick={onDelete}
+        disabled={busy}
+        title="Eliminar equipo"
+        className="text-[#b3471a] hover:bg-[var(--ncc-cream)] rounded p-1 disabled:opacity-40"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
     </div>
   );
 }
