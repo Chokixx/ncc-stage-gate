@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { Menu, X, Settings } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { NCCLogo } from "./Logo";
 
 const links = [
@@ -87,17 +87,28 @@ export function Navbar() {
           </span>
         </button>
 
-        <nav className="hidden md:flex items-center gap-1">
-          {links.map((l) => navBtn(l.target, l.label))}
-        </nav>
+        <div className="flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1">
+            {links.map((l) => navBtn(l.target, l.label))}
+          </nav>
 
-        <button
-          aria-label="Menu"
-          onClick={() => setOpen((v) => !v)}
-          className="md:hidden p-2 rounded-md text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)]"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+          <Link
+            to="/admin"
+            aria-label="Panel de administrador"
+            title="Administrador"
+            className="p-2 rounded-md text-[var(--ncc-deep)]/70 hover:text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)] transition-colors"
+          >
+            <Settings className="h-5 w-5" />
+          </Link>
+
+          <button
+            aria-label="Menu"
+            onClick={() => setOpen((v) => !v)}
+            className="md:hidden p-2 rounded-md text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)]"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       <div
