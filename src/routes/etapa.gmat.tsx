@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
-import { getTeams } from "@/lib/ncc/teams";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/etapa/gmat")({
   component: GmatTeamSelectPage,
@@ -19,7 +19,17 @@ function GmatTeamSelectPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
   const [team, setTeam] = useState("");
-  const teams = getTeams();
+  const [teams, setTeams] = useState<string[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("gmat_teams")
+        .select("name")
+        .order("position");
+      setTeams((data ?? []).map((r) => r.name));
+    })();
+  }, []);
 
   useEffect(() => {
     const unlocked =

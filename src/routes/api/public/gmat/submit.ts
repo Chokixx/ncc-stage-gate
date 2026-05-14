@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { getTeams } from "@/lib/ncc/teams";
+import { getTeamsFromDb } from "@/lib/ncc/teams.server";
 import { GMAT_QUESTIONS } from "@/lib/ncc/gmat-questions";
 
 const SubmissionSchema = z.object({
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
 
           const { team, answers, startedAt } = parsed.data;
 
-          const validTeams = getTeams();
+          const validTeams = await getTeamsFromDb();
           if (!validTeams.includes(team)) {
             return Response.json(
               { error: "Equipo no autorizado" },
