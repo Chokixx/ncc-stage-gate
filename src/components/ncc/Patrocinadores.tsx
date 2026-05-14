@@ -1,25 +1,14 @@
+import { useEffect, useState } from "react";
 import { ImageIcon } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 type Sponsor = {
+  id: string;
+  tier: "official" | "strategic" | "support";
+  position: number;
   name: string;
-  logo?: string;
+  logo_url: string | null;
 };
-
-const official: Sponsor = {
-  name: "Por anunciar",
-};
-
-const strategic: Sponsor[] = [
-  { name: "Por anunciar" },
-  { name: "Por anunciar" },
-  { name: "Por anunciar" },
-];
-
-const support: Sponsor[] = [
-  { name: "Por anunciar" },
-  { name: "Por anunciar" },
-  { name: "Por anunciar" },
-];
 
 type LogoSize = "lg" | "md" | "sm";
 
@@ -47,9 +36,9 @@ function LogoCard({ sponsor, size }: { sponsor: Sponsor; size: LogoSize }) {
       <div
         className={`w-full ${dims} bg-white rounded-xl border border-[var(--ncc-steel)] shadow-[0_2px_12px_rgba(18,91,80,0.06)] hover:shadow-[0_8px_28px_rgba(18,91,80,0.12)] transition-shadow flex items-center justify-center overflow-hidden`}
       >
-        {sponsor.logo ? (
+        {sponsor.logo_url ? (
           <img
-            src={sponsor.logo}
+            src={sponsor.logo_url}
             alt={sponsor.name}
             className="w-full h-full object-contain p-6"
           />
@@ -71,6 +60,27 @@ function TierLabel({ children }: { children: React.ReactNode }) {
 }
 
 export function Patrocinadores() {
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("sponsors")
+        .select("id, tier, position, name, logo_url")
+        .order("tier")
+        .order("position");
+      if (!error && data && !cancelled) setSponsors(data as Sponsor[]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const official = sponsors.filter((s) => s.tier === "official");
+  const strategic = sponsors.filter((s) => s.tier === "strategic");
+  const support = sponsors.filter((s) => s.tier === "support");
+
   return (
     <section
       id="patrocinadores"
@@ -87,33 +97,38 @@ export function Patrocinadores() {
           </p>
         </div>
 
-        {/* Oficial */}
-        <div className="mt-14">
-          <TierLabel>Patrocinador Oficial</TierLabel>
-          <div className="mt-6 flex justify-center">
-            <LogoCard sponsor={official} size="lg" />
+        {official.length > 0 && (
+          <div className="mt-14">
+            <TierLabel>Patrocinador Oficial</TierLabel>
+            <div className="mt-6 flex justify-center">
+              {official.map((s) => (
+                <LogoCard key={s.id} sponsor={s} size="lg" />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Estratégicos */}
-        <div className="mt-16">
-          <TierLabel>Patrocinadores Estratégicos</TierLabel>
-          <div className="mt-6 grid sm:grid-cols-3 gap-6">
-            {strategic.map((s, i) => (
-              <LogoCard key={`s-${i}`} sponsor={s} size="md" />
-            ))}
+        {strategic.length > 0 && (
+          <div className="mt-16">
+            <TierLabel>Patrocinadores Estratégicos</TierLabel>
+            <div className="mt-6 grid sm:grid-cols-3 gap-6">
+              {strategic.map((s) => (
+                <LogoCard key={s.id} sponsor={s} size="md" />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Apoyo */}
-        <div className="mt-16">
-          <TierLabel>Patrocinadores de Apoyo</TierLabel>
-          <div className="mt-6 grid grid-cols-3 gap-4 max-w-3xl mx-auto">
-            {support.map((s, i) => (
-              <LogoCard key={`a-${i}`} sponsor={s} size="sm" />
-            ))}
+        {support.length > 0 && (
+          <div className="mt-16">
+            <TierLabel>Patrocinadores de Apoyo</TierLabel>
+            <div className="mt-6 grid grid-cols-3 gap-4 max-w-3xl mx-auto">
+              {support.map((s) => (
+                <LogoCard key={s.id} sponsor={s} size="sm" />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );
