@@ -20,6 +20,8 @@ function GmatTeamSelectPage() {
   const [ready, setReady] = useState(false);
   const [team, setTeam] = useState("");
   const [teams, setTeams] = useState<string[]>([]);
+  const [checking, setChecking] = useState(false);
+  const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -52,9 +54,6 @@ function GmatTeamSelectPage() {
       </div>
     );
   }
-
-  const [checking, setChecking] = useState(false);
-  const [blocked, setBlocked] = useState(false);
 
   const onStart = async () => {
     if (!team) return;
