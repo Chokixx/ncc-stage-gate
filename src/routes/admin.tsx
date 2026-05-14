@@ -492,13 +492,32 @@ function TeamsAdmin({ password }: { password: string }) {
     }
   };
 
-  return (
-    <section className="bg-white rounded-xl border border-[var(--ncc-steel)] p-6 md:p-8 shadow-[0_2px_12px_rgba(18,91,80,0.05)]">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="font-serif text-2xl text-[var(--ncc-deep)]">
-            Equipos GMAT
-          </h2>
+  const onAdd = async () => {
+    const name = newName.trim();
+    if (!name) return;
+    setAdding(true);
+    try {
+      await add({ data: { password, name } });
+      setNewName("");
+      await reload();
+    } catch (e) {
+      console.error(e);
+      alert("Error al agregar equipo");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const onDeleteOne = async (t: Team) => {
+    if (!confirm(`¿Eliminar equipo "${t.name}"?`)) return;
+    setSavingId(t.id);
+    try {
+      await del({ data: { password, id: t.id } });
+      await reload();
+    } finally {
+      setSavingId(null);
+    }
+  };
           <p className="text-sm text-[var(--muted-foreground)] mt-1">
             Edita un nombre individual o reemplaza la lista completa.
           </p>
