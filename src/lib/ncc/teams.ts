@@ -1,6 +1,6 @@
 // Lista de los 100 equipos del NCC.
 // TODO: reemplazar por la lista definitiva enviada por los organizadores.
-export const TEAMS: string[] = ["Prueba"];
+export const TEAMS: string[] = [];
 
 // Mientras llega la lista oficial, generamos placeholders Equipo 001..Equipo 100
 // para poder probar el flujo. Cuando se reemplace TEAMS arriba con la lista real,
@@ -10,5 +10,5 @@ export const PLACEHOLDER_TEAMS: string[] = Array.from({ length: 100 }, (_, i) =>
 );
 
 export function getTeams(): string[] {
-  return TEAMS.length > 0 ? [...TEAMS, ...PLACEHOLDER_TEAMS] : PLACEHOLDER_TEAMS;
+  return TEAMS.length > 0 ? TEAMS : PLACEHOLDER_TEAMS;
 }
