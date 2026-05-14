@@ -53,11 +53,32 @@ function GmatTeamSelectPage() {
     );
   }
 
-  const onStart = () => {
+  const [checking, setChecking] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+
+  const onStart = async () => {
     if (!team) return;
-    sessionStorage.setItem("ncc_gmat_team", team);
-    sessionStorage.setItem("ncc_gmat_started_at", new Date().toISOString());
-    navigate({ to: "/etapa/gmat/quiz" });
+    setBlocked(false);
+    setChecking(true);
+    try {
+      const res = await fetch("/api/public/gmat/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ team }),
+      });
+      const data = await res.json();
+      if (data?.submitted) {
+        setBlocked(true);
+        return;
+      }
+      sessionStorage.setItem("ncc_gmat_team", team);
+      sessionStorage.setItem("ncc_gmat_started_at", new Date().toISOString());
+      navigate({ to: "/etapa/gmat/quiz" });
+    } catch {
+      alert("No se pudo verificar el equipo. Intenta de nuevo.");
+    } finally {
+      setChecking(false);
+    }
   };
 
   return (
