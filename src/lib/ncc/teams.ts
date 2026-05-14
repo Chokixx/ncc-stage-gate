@@ -10,5 +10,5 @@ export const PLACEHOLDER_TEAMS: string[] = Array.from({ length: 100 }, (_, i) =>
 );
 
 export function getTeams(): string[] {
-  return TEAMS.length > 0 ? TEAMS : PLACEHOLDER_TEAMS;
+  return TEAMS.length > 0 ? [...TEAMS, ...PLACEHOLDER_TEAMS] : PLACEHOLDER_TEAMS;
 }
