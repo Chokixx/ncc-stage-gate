@@ -608,10 +608,12 @@ function TeamRow({
   team,
   busy,
   onSave,
+  onDelete,
 }: {
   team: Team;
   busy: boolean;
   onSave: (n: string) => void;
+  onDelete: () => void;
 }) {
   const [name, setName] = useState(team.name);
   useEffect(() => setName(team.name), [team.name]);
@@ -631,6 +633,14 @@ function TeamRow({
         className={`flex-1 rounded px-2 py-1 text-sm outline-none border ${dirty ? "border-[var(--ncc-deep)]" : "border-transparent"} focus:border-[var(--ncc-deep)]`}
         disabled={busy}
       />
+      <button
+        onClick={onDelete}
+        disabled={busy}
+        title="Eliminar equipo"
+        className="text-[#b3471a] hover:bg-[var(--ncc-cream)] rounded p-1 disabled:opacity-40"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
     </div>
   );
 }
