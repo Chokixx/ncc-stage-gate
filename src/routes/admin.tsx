@@ -563,6 +563,28 @@ function TeamsAdmin({ password }: { password: string }) {
         </div>
       )}
 
+      <div className="mt-4 flex flex-wrap gap-2 items-center border-t border-[var(--ncc-steel)] pt-4">
+        <input
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void onAdd();
+            }
+          }}
+          placeholder="Nombre del nuevo equipo"
+          className="flex-1 min-w-[200px] rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
+        />
+        <button
+          onClick={onAdd}
+          disabled={adding || !newName.trim()}
+          className="inline-flex items-center gap-1.5 text-sm px-4 py-2 rounded-md bg-[var(--ncc-deep)] text-white disabled:opacity-50"
+        >
+          <Plus className="h-4 w-4" /> {adding ? "Agregando…" : "Agregar equipo"}
+        </button>
+      </div>
+
       {loading ? (
         <p className="mt-6 text-sm text-[var(--muted-foreground)]">Cargando…</p>
       ) : (
@@ -573,6 +595,7 @@ function TeamsAdmin({ password }: { password: string }) {
               team={t}
               busy={savingId === t.id}
               onSave={(n) => onSaveOne(t, n)}
+              onDelete={() => onDeleteOne(t)}
             />
           ))}
         </div>
