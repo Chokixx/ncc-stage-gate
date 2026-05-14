@@ -42,7 +42,7 @@ export async function sendGmatResultEmail(p: GmatEmailPayload) {
   const rows = p.answers
     .map(
       (a, i) =>
-        `<tr><td style="padding:4px 8px;border:1px solid #ddd">${i + 1}</td><td style="padding:4px 8px;border:1px solid #ddd">${a >= 0 ? a + 1 : "—"}</td></tr>`,
+        `<tr><td style="padding:4px 8px;border:1px solid #ddd">${i + 1}</td><td style="padding:4px 8px;border:1px solid #ddd">${a >= 0 ? String.fromCharCode(65 + a) : "—"}</td></tr>`,
     )
     .join("");
 
