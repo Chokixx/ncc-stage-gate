@@ -145,12 +145,18 @@ function GmatTeamSelectPage() {
                 ))}
               </select>
 
+              {blocked && (
+                <p className="mt-3 text-sm" style={{ color: "#b3471a" }}>
+                  Este equipo ya envió el examen. No es posible reintentarlo.
+                </p>
+              )}
+
               <button
                 onClick={onStart}
-                disabled={!team}
+                disabled={!team || checking}
                 className="mt-8 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-[var(--ncc-deep)] text-white px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Siguiente
+                {checking ? "Verificando…" : "Siguiente"}
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
