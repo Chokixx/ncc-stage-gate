@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
@@ -17,6 +17,8 @@ export const Route = createFileRoute("/etapa/gmat")({
 
 function GmatTeamSelectPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isQuizRoute = location.pathname === "/etapa/gmat/quiz";
   const [ready, setReady] = useState(false);
   const [team, setTeam] = useState("");
   const [teams, setTeams] = useState<string[]>([]);
@@ -24,6 +26,7 @@ function GmatTeamSelectPage() {
   const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
+    if (isQuizRoute) return;
     (async () => {
       const { data } = await supabase
         .from("gmat_teams")
@@ -31,7 +34,7 @@ function GmatTeamSelectPage() {
         .order("position");
       setTeams((data ?? []).map((r) => r.name));
     })();
-  }, []);
+  }, [isQuizRoute]);
 
   useEffect(() => {
     const unlocked =
@@ -53,6 +56,10 @@ function GmatTeamSelectPage() {
         <p className="text-[var(--muted-foreground)] text-sm">Verificando acceso…</p>
       </div>
     );
+  }
+
+  if (isQuizRoute) {
+    return <Outlet />;
   }
 
   const onStart = async () => {
