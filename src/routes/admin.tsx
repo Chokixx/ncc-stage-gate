@@ -771,11 +771,8 @@ function SubmissionsAdmin({ password }: { password: string }) {
                 const dur = durationMinutes(s.started_at, s.submitted_at) || "—";
                 const isOpen = open === s.id;
                 return (
-                  <>
-                    <tr
-                      key={s.id}
-                      className="border-b border-[var(--ncc-steel)] hover:bg-[var(--ncc-cream)]/40"
-                    >
+                  <Fragment key={s.id}>
+                    <tr className="border-b border-[var(--ncc-steel)] hover:bg-[var(--ncc-cream)]/40">
                       <td className="py-2 pr-3 tabular-nums text-[var(--muted-foreground)]">
                         {i + 1}
                       </td>
@@ -807,7 +804,7 @@ function SubmissionsAdmin({ password }: { password: string }) {
                       </td>
                     </tr>
                     {isOpen && (
-                      <tr key={s.id + "-d"} className="border-b border-[var(--ncc-steel)]">
+                      <tr className="border-b border-[var(--ncc-steel)]">
                         <td colSpan={7} className="py-3 pr-3">
                           <p className="text-xs text-[var(--muted-foreground)] font-mono break-all">
                             {ans.length > 0
@@ -817,7 +814,7 @@ function SubmissionsAdmin({ password }: { password: string }) {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </tbody>
