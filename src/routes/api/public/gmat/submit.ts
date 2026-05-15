@@ -118,7 +118,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
               total: GMAT_QUIZ_SIZE,
               started_at: data.started_at ?? startedAt ?? null,
               submitted_at: data.submitted_at,
-              answers: { questionIds, answers } as never,
+              answers,
             });
             const { data: allRows, error: listErr } = await admin
               .from("gmat_submissions")
@@ -127,7 +127,23 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
               .order("submitted_at", { ascending: true })
               .limit(500);
             if (listErr) throw listErr;
-            await rewriteTop50((allRows ?? []) as never);
+            const normalized = (allRows ?? []).map((r: {
+              team: string;
+              score: number;
+              total: number;
+              started_at: string | null;
+              submitted_at: string;
+              answers: unknown;
+            }) => {
+              const a = r.answers;
+              const ans = Array.isArray(a)
+                ? (a as number[])
+                : Array.isArray((a as { answers?: number[] })?.answers)
+                  ? ((a as { answers: number[] }).answers)
+                  : [];
+              return { ...r, answers: ans };
+            });
+            await rewriteTop50(normalized);
           } catch (sheetErr) {
             console.error("[gmat/submit] sheets sync error", sheetErr);
           }
@@ -143,7 +159,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
               total: GMAT_QUIZ_SIZE,
               started_at: data.started_at ?? startedAt ?? null,
               submitted_at: data.submitted_at,
-              answers: { questionIds, answers } as never,
+              answers,
             });
           } catch (mailErr) {
             console.error("[gmat/submit] email error", mailErr);
