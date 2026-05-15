@@ -295,22 +295,27 @@ export const adminUploadStageFile = createServerFn({ method: "POST" })
     if (upErr) throw new Error(upErr.message);
     const { data: pub } = supabaseAdmin.storage.from("stage-files").getPublicUrl(path);
 
-    const updates: Record<string, string> = {};
+    const publicUrl = pub.publicUrl;
+    let upd;
     if (data.kind === "sponsor_logo") {
-      updates.sponsor_logo_url = pub.publicUrl;
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ sponsor_logo_url: publicUrl })
+        .eq("stage", data.stage);
     } else if (data.kind === "case_pdf") {
-      updates.case_pdf_url = pub.publicUrl;
-      updates.case_pdf_name = data.filename;
-    } else if (data.kind === "case_data") {
-      updates.case_data_url = pub.publicUrl;
-      updates.case_data_name = data.filename;
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ case_pdf_url: publicUrl, case_pdf_name: data.filename })
+        .eq("stage", data.stage);
+    } else {
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ case_data_url: publicUrl, case_data_name: data.filename })
+        .eq("stage", data.stage);
     }
-    const { error } = await supabaseAdmin
-      .from("stage_content")
-      .update(updates)
-      .eq("stage", data.stage);
+    const { error } = await upd;
     if (error) throw new Error(error.message);
-    return { url: pub.publicUrl };
+    return { url: publicUrl };
   });
 
 export const adminClearStageFile = createServerFn({ method: "POST" })
