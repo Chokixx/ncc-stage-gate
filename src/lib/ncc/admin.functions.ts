@@ -211,3 +211,18 @@ export const adminReplaceTeams = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true, count: rows.length };
   });
+
+// ---------- GMAT Submissions ----------
+export const adminListSubmissions = createServerFn({ method: "POST" })
+  .inputValidator((i) => z.object({ password: z.string().min(1).max(200) }).parse(i))
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    const { data: rows, error } = await supabaseAdmin
+      .from("gmat_submissions")
+      .select("id, team, score, total, started_at, submitted_at, answers")
+      .order("score", { ascending: false })
+      .order("submitted_at", { ascending: true })
+      .limit(500);
+    if (error) throw new Error(error.message);
+    return { submissions: rows ?? [] };
+  });
