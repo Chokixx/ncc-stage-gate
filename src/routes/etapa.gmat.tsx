@@ -60,21 +60,13 @@ function GmatTeamSelectPage() {
     setBlocked(false);
     setChecking(true);
     try {
-      const res = await fetch("/api/public/gmat/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ team }),
-      });
-      const data = await res.json();
-      if (data?.submitted) {
-        setBlocked(true);
-        return;
-      }
+      // El bloqueo de reintentos se valida en el servidor al enviar (/submit responde 409
+      // si el equipo ya envió). Aquí solo navegamos para no depender del check.
       sessionStorage.setItem("ncc_gmat_team", team);
       sessionStorage.setItem("ncc_gmat_started_at", new Date().toISOString());
       navigate({ to: "/etapa/gmat/quiz" });
     } catch {
-      alert("No se pudo verificar el equipo. Intenta de nuevo.");
+      setBlocked(true);
     } finally {
       setChecking(false);
     }
@@ -96,7 +88,7 @@ function GmatTeamSelectPage() {
             <p className="text-xs uppercase tracking-[0.22em] opacity-80">Etapa</p>
             <h1 className="font-serif text-5xl md:text-7xl mt-2">GMAT</h1>
             <p className="mt-4 text-white/85 max-w-2xl text-lg">
-              Examen de admisión cronometrado — 20 preguntas, 45 minutos.
+              Examen de admisión cronometrado — 29 preguntas, 45 minutos.
             </p>
           </div>
         </section>
