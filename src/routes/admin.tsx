@@ -141,6 +141,8 @@ function AdminPage() {
   return <AdminDashboard password={password} onLogout={onLogout} />;
 }
 
+type Tab = "sponsors" | "teams" | "submissions";
+
 function AdminDashboard({
   password,
   onLogout,
@@ -148,6 +150,12 @@ function AdminDashboard({
   password: string;
   onLogout: () => void;
 }) {
+  const [tab, setTab] = useState<Tab>("sponsors");
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "sponsors", label: "Patrocinadores" },
+    { key: "teams", label: "Equipos GMAT" },
+    { key: "submissions", label: "Resultados" },
+  ];
   return (
     <div className="min-h-screen bg-[var(--ncc-cream)] flex flex-col">
       <Navbar />
@@ -171,9 +179,28 @@ function AdminDashboard({
           </div>
         </section>
 
-        <div className="max-w-6xl mx-auto px-6 py-10 space-y-12">
-          <SponsorsAdmin password={password} />
-          <TeamsAdmin password={password} />
+        <div className="max-w-6xl mx-auto px-6 pt-8">
+          <div className="flex gap-1 border-b border-[var(--ncc-steel)]">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`px-4 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors ${
+                  tab === t.key
+                    ? "border-[var(--ncc-deep)] text-[var(--ncc-deep)]"
+                    : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--ncc-deep)]"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          {tab === "sponsors" && <SponsorsAdmin password={password} />}
+          {tab === "teams" && <TeamsAdmin password={password} />}
+          {tab === "submissions" && <SubmissionsAdmin password={password} />}
         </div>
       </main>
       <Footer />
