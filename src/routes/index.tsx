@@ -6,6 +6,7 @@ import { StageGate } from "@/components/ncc/StageGate";
 import { Patrocinadores } from "@/components/ncc/Patrocinadores";
 import { Contacto } from "@/components/ncc/Contacto";
 import { Footer } from "@/components/ncc/Footer";
+import deltaIcon from "@/assets/delta-letter.png";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -51,11 +52,16 @@ function Index() {
           password={import.meta.env.VITE_PASS_BETA ?? ""}
         />
         <StageGate
-          id="omega"
-          label="OMEGA"
+          id="delta"
+          label="DELTA"
           labelColor="#125b50"
           borderAccent="#9ebcac"
-          password={import.meta.env.VITE_PASS_OMEGA ?? ""}
+          password={
+            import.meta.env.VITE_PASS_DELTA ??
+            import.meta.env.VITE_PASS_OMEGA ??
+            ""
+          }
+          iconUrl={deltaIcon}
         />
         <Contacto />
       </main>

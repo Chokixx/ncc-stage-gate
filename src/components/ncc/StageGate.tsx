@@ -3,11 +3,12 @@ import { Lock, ArrowRight } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 
 type Props = {
-  id: "gmat" | "alpha" | "beta" | "omega";
+  id: "gmat" | "alpha" | "beta" | "delta";
   label: string;
   labelColor: string;
   borderAccent: string;
   password: string;
+  iconUrl?: string;
 };
 
 export function StageGate({
@@ -16,6 +17,7 @@ export function StageGate({
   labelColor,
   borderAccent,
   password,
+  iconUrl,
 }: Props) {
   const navigate = useNavigate();
   const storageKey = `ncc_${id}_unlocked`;
@@ -45,12 +47,24 @@ export function StageGate({
   return (
     <section id={id} className="w-full" style={{ backgroundColor: "#eff6f2" }}>
       <div className="max-w-4xl mx-auto px-6 py-20 md:py-28">
-        <h2
-          className="font-serif text-4xl md:text-5xl mb-8 text-center md:text-left"
-          style={{ color: labelColor }}
-        >
-          {label}
-        </h2>
+        <div className="flex items-center justify-center md:justify-start gap-4 mb-8">
+          {iconUrl && (
+            <img
+              src={iconUrl}
+              alt={`${label} símbolo`}
+              width={56}
+              height={56}
+              loading="lazy"
+              className="h-12 w-12 md:h-14 md:w-14 object-contain"
+            />
+          )}
+          <h2
+            className="font-serif text-4xl md:text-5xl text-center md:text-left"
+            style={{ color: labelColor }}
+          >
+            {label}
+          </h2>
+        </div>
 
         <div
           className={`mx-auto max-w-md bg-white rounded-lg border border-[var(--ncc-steel)] p-8 shadow-[0_4px_24px_rgba(18,91,80,0.08)] transition-all duration-300 ${animating ? "-translate-y-4 opacity-0" : "translate-y-0 opacity-100"}`}

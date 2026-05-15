@@ -4,7 +4,7 @@ import { ArrowLeft, Download, FileText } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
 
-type StageId = "alpha" | "beta" | "omega";
+type StageId = "alpha" | "beta" | "delta";
 
 const STAGE_CONFIG: Record<
   StageId,
@@ -20,8 +20,8 @@ const STAGE_CONFIG: Record<
     accent: "#125b50",
     tagline: "Segunda etapa — Análisis & profundización.",
   },
-  omega: {
-    label: "OMEGA",
+  delta: {
+    label: "DELTA",
     accent: "#9ebcac",
     tagline: "Etapa final — Estrategia & presentación.",
   },
