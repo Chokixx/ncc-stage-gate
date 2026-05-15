@@ -40,7 +40,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
           // Calcular puntaje
           let score = 0;
           GMAT_QUESTIONS.forEach((q, idx) => {
-            if (answers[idx] === q.correctIndex) score += 1;
+            if (answers[idx] === GMAT_CORRECT_ANSWERS[q.id]) score += 1;
           });
 
           const supabaseUrl =
