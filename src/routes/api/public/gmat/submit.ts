@@ -3,11 +3,12 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { getTeamsFromDb } from "@/lib/ncc/teams.server";
 import { GMAT_QUESTIONS } from "@/lib/ncc/gmat-questions";
+import { GMAT_CORRECT_ANSWERS } from "@/lib/ncc/gmat-answers.server";
 
 const SubmissionSchema = z.object({
   team: z.string().min(1).max(200),
   answers: z
-    .array(z.number().int().min(-1).max(20))
+    .array(z.number().int().min(-1).max(4))
     .length(GMAT_QUESTIONS.length),
   startedAt: z.string().datetime().optional(),
 });
@@ -39,7 +40,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
           // Calcular puntaje
           let score = 0;
           GMAT_QUESTIONS.forEach((q, idx) => {
-            if (answers[idx] === q.correctIndex) score += 1;
+            if (answers[idx] === GMAT_CORRECT_ANSWERS[q.id]) score += 1;
           });
 
           const supabaseUrl =
