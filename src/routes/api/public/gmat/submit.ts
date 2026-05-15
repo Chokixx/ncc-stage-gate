@@ -159,7 +159,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
               total: GMAT_QUIZ_SIZE,
               started_at: data.started_at ?? startedAt ?? null,
               submitted_at: data.submitted_at,
-              answers: { questionIds, answers } as never,
+              answers,
             });
           } catch (mailErr) {
             console.error("[gmat/submit] email error", mailErr);
