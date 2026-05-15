@@ -1,12 +1,31 @@
+import { NCCLogo } from "./Logo";
+
 export function Hero() {
   return (
     <section
       id="inicio"
-      className="relative w-full"
+      className="relative w-full overflow-hidden"
       style={{ backgroundColor: "#598c71", color: "#fff" }}
     >
-      <div className="max-w-5xl mx-auto px-6 py-24 md:py-32">
-        <p className="font-serif italic text-lg md:text-xl mb-10 opacity-95">
+      {/* Decorative logo watermarks */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.07] select-none">
+        <NCCLogo
+          size={520}
+          variant="white"
+          className="absolute -top-24 -left-24 rotate-12"
+        />
+        <NCCLogo
+          size={420}
+          variant="white"
+          className="absolute -bottom-32 -right-20 -rotate-12"
+        />
+      </div>
+
+      <div className="relative max-w-5xl mx-auto px-6 py-24 md:py-32">
+        <div className="flex justify-center mb-8">
+          <NCCLogo size={88} variant="white" className="drop-shadow-md" />
+        </div>
+        <p className="font-serif italic text-lg md:text-xl mb-10 opacity-95 text-center">
           Introducción
         </p>
         <h1 className="font-serif text-5xl md:text-7xl leading-[1.05] text-center">
