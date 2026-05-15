@@ -2,14 +2,25 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { getTeamsFromDb } from "@/lib/ncc/teams.server";
-import { GMAT_QUESTIONS } from "@/lib/ncc/gmat-questions";
+import { GMAT_QUESTIONS, GMAT_QUIZ_SIZE } from "@/lib/ncc/gmat-questions";
 import { GMAT_CORRECT_ANSWERS } from "@/lib/ncc/gmat-answers.server";
+
+const VALID_IDS = new Set(GMAT_QUESTIONS.map((q) => q.id));
 
 const SubmissionSchema = z.object({
   team: z.string().min(1).max(200),
+  questionIds: z
+    .array(z.number().int())
+    .length(GMAT_QUIZ_SIZE)
+    .refine((ids) => ids.every((id) => VALID_IDS.has(id)), {
+      message: "IDs de pregunta inválidos",
+    })
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: "IDs de pregunta duplicados",
+    }),
   answers: z
     .array(z.number().int().min(-1).max(4))
-    .length(GMAT_QUESTIONS.length),
+    .length(GMAT_QUIZ_SIZE),
   startedAt: z.string().datetime().optional(),
 });
 
@@ -27,7 +38,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             );
           }
 
-          const { team, answers, startedAt } = parsed.data;
+          const { team, questionIds, answers, startedAt } = parsed.data;
 
           const validTeams = await getTeamsFromDb();
           if (!validTeams.includes(team)) {
@@ -37,10 +48,10 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             );
           }
 
-          // Calcular puntaje
+          // Calcular puntaje según las preguntas asignadas a este intento
           let score = 0;
-          GMAT_QUESTIONS.forEach((q, idx) => {
-            if (answers[idx] === GMAT_CORRECT_ANSWERS[q.id]) score += 1;
+          questionIds.forEach((qid, idx) => {
+            if (answers[idx] === GMAT_CORRECT_ANSWERS[qid]) score += 1;
           });
 
           const supabaseUrl =
@@ -57,7 +68,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             auth: { persistSession: false, autoRefreshToken: false },
           });
 
-          // Bloquear reintentos: si ya hay envío para este equipo, rechazar.
+          // Bloquear reintentos
           const { data: existing } = await admin
             .from("gmat_submissions")
             .select("id")
@@ -74,16 +85,15 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             .from("gmat_submissions")
             .insert({
               team,
-              answers,
+              answers: { questionIds, answers },
               score,
-              total: GMAT_QUESTIONS.length,
+              total: GMAT_QUIZ_SIZE,
               started_at: startedAt ?? null,
             })
             .select("id, submitted_at, started_at")
             .single();
 
           if (error) {
-            // 23505 = unique_violation (carrera contra el chequeo previo)
             if ((error as { code?: string }).code === "23505") {
               return Response.json(
                 { error: "Este equipo ya envió el examen." },
@@ -105,10 +115,10 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             await appendResultRow({
               team,
               score,
-              total: GMAT_QUESTIONS.length,
+              total: GMAT_QUIZ_SIZE,
               started_at: data.started_at ?? startedAt ?? null,
               submitted_at: data.submitted_at,
-              answers,
+              answers: { questionIds, answers } as never,
             });
             const { data: allRows, error: listErr } = await admin
               .from("gmat_submissions")
@@ -122,7 +132,6 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             console.error("[gmat/submit] sheets sync error", sheetErr);
           }
 
-
           // Notificación por correo (no rompe la respuesta si falla)
           try {
             const { sendGmatResultEmail } = await import(
@@ -131,10 +140,10 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             await sendGmatResultEmail({
               team,
               score,
-              total: GMAT_QUESTIONS.length,
+              total: GMAT_QUIZ_SIZE,
               started_at: data.started_at ?? startedAt ?? null,
               submitted_at: data.submitted_at,
-              answers,
+              answers: { questionIds, answers } as never,
             });
           } catch (mailErr) {
             console.error("[gmat/submit] email error", mailErr);
@@ -144,7 +153,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             ok: true,
             id: data.id,
             score,
-            total: GMAT_QUESTIONS.length,
+            total: GMAT_QUIZ_SIZE,
           });
         } catch (err) {
           console.error("[gmat/submit] unexpected error", err);

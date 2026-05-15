@@ -224,3 +224,4 @@ export const GMAT_QUESTIONS: GmatQuestion[] = [
 ];
 
 export const GMAT_DURATION_MINUTES = 45;
+export const GMAT_QUIZ_SIZE = 20;
