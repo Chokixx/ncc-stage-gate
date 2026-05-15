@@ -24,6 +24,10 @@ import {
   adminAddTeam,
   adminDeleteTeam,
   adminListSubmissions,
+  adminListStageContent,
+  adminUpdateStageContent,
+  adminUploadStageFile,
+  adminClearStageFile,
 } from "@/lib/ncc/admin.functions";
 import { answersToLetters, durationMinutes } from "@/lib/ncc/gmat-format";
 
@@ -141,7 +145,7 @@ function AdminPage() {
   return <AdminDashboard password={password} onLogout={onLogout} />;
 }
 
-type Tab = "sponsors" | "teams" | "submissions";
+type Tab = "sponsors" | "teams" | "stages" | "submissions";
 
 function AdminDashboard({
   password,
@@ -154,6 +158,7 @@ function AdminDashboard({
   const tabs: { key: Tab; label: string }[] = [
     { key: "sponsors", label: "Patrocinadores" },
     { key: "teams", label: "Equipos GMAT" },
+    { key: "stages", label: "Etapas" },
     { key: "submissions", label: "Resultados" },
   ];
   return (
@@ -200,6 +205,7 @@ function AdminDashboard({
         <div className="max-w-6xl mx-auto px-6 py-8">
           {tab === "sponsors" && <SponsorsAdmin password={password} />}
           {tab === "teams" && <TeamsAdmin password={password} />}
+          {tab === "stages" && <StagesAdmin password={password} />}
           {tab === "submissions" && <SubmissionsAdmin password={password} />}
         </div>
       </main>
