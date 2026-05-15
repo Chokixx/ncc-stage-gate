@@ -324,20 +324,24 @@ export const adminClearStageFile = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     checkPassword(data.password);
-    const updates: Record<string, null> = {};
-    if (data.kind === "sponsor_logo") updates.sponsor_logo_url = null;
-    if (data.kind === "case_pdf") {
-      updates.case_pdf_url = null;
-      updates.case_pdf_name = null;
+    let upd;
+    if (data.kind === "sponsor_logo") {
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ sponsor_logo_url: null })
+        .eq("stage", data.stage);
+    } else if (data.kind === "case_pdf") {
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ case_pdf_url: null, case_pdf_name: null })
+        .eq("stage", data.stage);
+    } else {
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ case_data_url: null, case_data_name: null })
+        .eq("stage", data.stage);
     }
-    if (data.kind === "case_data") {
-      updates.case_data_url = null;
-      updates.case_data_name = null;
-    }
-    const { error } = await supabaseAdmin
-      .from("stage_content")
-      .update(updates)
-      .eq("stage", data.stage);
+    const { error } = await upd;
     if (error) throw new Error(error.message);
     return { ok: true };
   });
