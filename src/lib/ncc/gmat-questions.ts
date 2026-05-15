@@ -10,329 +10,216 @@ export type GmatQuestion = {
 export const GMAT_QUESTIONS: GmatQuestion[] = [
   {
     id: 1,
-    text: `sqrt(324) + sqrt(289)`,
-    options: [
-      `32`,
-      `33`,
-      `34`,
-      `35`,
-      `36`
-    ],
+    text: `√324 + √289`,
+    options: [`32`, `33`, `34`, `35`, `36`],
   },
   {
     id: 2,
-    text: `sqrt(36+64+(5)^2) + sqrt(20)`,
+    text: `√(36 + 64 + 5²) + √20`,
     options: [
-      `19 + sqrt(20)`,
-      `19*sqrt(20)`,
-      `sqrt(145)`,
-      `5*sqrt(100)+sqrt(20)`,
-      `7*sqrt(5)`
+      `19 + √20`,
+      `19 · √20`,
+      `√145`,
+      `5 · √100 + √20`,
+      `7 · √5`,
     ],
   },
   {
     id: 3,
-    text: `If x is an integer and sqrt(x) * x - x = a , which of the following must be true? I. a is Even  II. a is Positive  III. a is an Integer`,
+    text: `Si x es un número entero y √x · x − x = a, ¿cuál de las siguientes afirmaciones debe ser verdadera? I. a es par.  II. a es positivo.  III. a es entero.`,
     options: [
-      `I only`,
-      `II only`,
-      `III only`,
-      `I and II`,
-      `None of the above`
+      `Solo I`,
+      `Solo II`,
+      `Solo III`,
+      `I y II`,
+      `Ninguna de las anteriores`,
     ],
   },
   {
     id: 4,
-    text: `Is X a prime integer? (1) |X| = 2  (2) X^2 = 4`,
+    text: `¿Es X un número entero primo? (1) |X| = 2  (2) X² = 4`,
     options: [
-      `Statement (1) ALONE is sufficient, but Statement (2) ALONE is not sufficient`,
-      `Statement (2) ALONE is sufficient, but Statement (1) ALONE is not sufficient`,
-      `BOTH statements TOGETHER are sufficient, but NEITHER statement ALONE is sufficient`,
-      `EACH statement ALONE is sufficient`,
-      `Statements (1) and (2) TOGETHER are NOT sufficient`
+      `La afirmación (1) SOLA es suficiente, pero la (2) SOLA no lo es`,
+      `La afirmación (2) SOLA es suficiente, pero la (1) SOLA no lo es`,
+      `AMBAS afirmaciones JUNTAS son suficientes, pero NINGUNA por sí SOLA lo es`,
+      `CADA afirmación POR SÍ SOLA es suficiente`,
+      `Las afirmaciones (1) y (2) JUNTAS NO son suficientes`,
     ],
   },
   {
     id: 5,
-    text: `Which of the following expressions has the greatest value?`,
+    text: `¿Cuál de las siguientes expresiones tiene el mayor valor?`,
     options: [
-      `999^(12)`,
-      `10^(30)`,
-      `777^(10)`,
-      `(-20)^(24)`,
-      `(sqrt(15))^40`
+      `999¹²`,
+      `10³⁰`,
+      `777¹⁰`,
+      `(−20)²⁴`,
+      `(√15)⁴⁰`,
     ],
   },
   {
     id: 7,
-    text: `Which of the following numbers is the greatest?`,
+    text: `¿Cuál de los siguientes números es el mayor?`,
     options: [
-      `1876452/1876455`,
-      `1883446/1883449`,
-      `1883453/1883456`,
-      `1883456/1883459`,
-      `1883491/1883494`
+      `1.876.452 ÷ 1.876.455`,
+      `1.883.446 ÷ 1.883.449`,
+      `1.883.453 ÷ 1.883.456`,
+      `1.883.456 ÷ 1.883.459`,
+      `1.883.491 ÷ 1.883.494`,
     ],
   },
   {
     id: 8,
-    text: `What is the smallest possible value of integer m if m/n = 0.3636363636...?`,
-    options: [
-      `3`,
-      `4`,
-      `7`,
-      `13`,
-      `22`
-    ],
+    text: `¿Cuál es el menor valor posible del entero m si m ÷ n = 0,3636363636...?`,
+    options: [`3`, `4`, `7`, `13`, `22`],
   },
   {
     id: 9,
-    text: `Which of the following is a factor of 18! + 1?`,
-    options: [
-      `15`,
-      `17`,
-      `19`,
-      `33`,
-      `39`
-    ],
-  },
-  {
-    id: 10,
-    text: `Is x greater than 1? (1) (1/x) > -1  (2) (1/x^5) > (1/x^3)`,
-    options: [
-      `Statement (1) ALONE is sufficient, but Statement (2) ALONE is not sufficient`,
-      `Statement (2) ALONE is sufficient, but Statement (1) ALONE is not sufficient`,
-      `BOTH statements TOGETHER are sufficient, but NEITHER statement ALONE is sufficient`,
-      `EACH statement ALONE is sufficient`,
-      `Statements (1) and (2) TOGETHER are NOT sufficient`
-    ],
+    text: `¿Cuál de los siguientes números es un factor de 18! + 1?`,
+    options: [`15`, `17`, `19`, `33`, `39`],
   },
   {
     id: 11,
-    text: `If S is the sum of the digits of a given number, T is the sum of digits of S, and G is the sum of digits in T. For example S og 987 is 9+8+7=24, T of S is 2+4=6 and G of 6 is 6. Therefore G of 987 is 6. Which of the following has the greatest G?`,
-    options: [
-      `94123`,
-      `91964`,
-      `64678`,
-      `62355`,
-      `45689`
-    ],
+    text: `Si S es la suma de los dígitos de un número dado, T es la suma de los dígitos de S, y G es la suma de los dígitos de T. Por ejemplo, S de 987 es 9 + 8 + 7 = 24, T de S es 2 + 4 = 6 y G de 6 es 6. Por lo tanto, G de 987 es 6. ¿Cuál de los siguientes números tiene el mayor G?`,
+    options: [`94123`, `91964`, `64678`, `62355`, `45689`],
   },
   {
     id: 12,
-    text: `If N = 1234@ and @ represents the units digit, is N a multiple of 5? (1) @! is not divisible by 5  (2) @ is divisible by 9`,
+    text: `Si N = 1234@ y @ representa el dígito de las unidades, ¿es N un múltiplo de 5? (1) @! no es divisible por 5  (2) @ es divisible por 9`,
     options: [
-      `Statement (1) ALONE is sufficient, but Statement (2) ALONE is not sufficient`,
-      `Statement (2) ALONE is sufficient, but Statement (1) ALONE is not sufficient`,
-      `BOTH statements TOGETHER are sufficient, but NEITHER statement ALONE is sufficient`,
-      `EACH statement ALONE is sufficient`,
-      `Statements (1) and (2) TOGETHER are NOT sufficient`
+      `La afirmación (1) SOLA es suficiente, pero la (2) SOLA no lo es`,
+      `La afirmación (2) SOLA es suficiente, pero la (1) SOLA no lo es`,
+      `AMBAS afirmaciones JUNTAS son suficientes, pero NINGUNA por sí SOLA lo es`,
+      `CADA afirmación POR SÍ SOLA es suficiente`,
+      `Las afirmaciones (1) y (2) JUNTAS NO son suficientes`,
     ],
   },
   {
     id: 13,
-    text: `If x = sqrt4((x^3)+(6*x^2)), then the sum of all possible solutions for x?`,
-    options: [
-      `-2`,
-      `0`,
-      `1`,
-      `3`,
-      `5`
-    ],
+    text: `Si x = ⁴√(x³ + 6x²), ¿cuál es la suma de todas las soluciones posibles para x?`,
+    options: [`−2`, `0`, `1`, `3`, `5`],
   },
   {
     id: 14,
-    text: `If -1 < x < 5, then which of the following must be true?`,
+    text: `Si −1 < x < 5, ¿cuál de las siguientes afirmaciones debe ser verdadera?`,
     options: [
-      `|3 - x| < -3`,
+      `|3 − x| < −3`,
       `|x| < 4`,
-      `|x| - 2 > 2`,
+      `|x| − 2 > 2`,
       `|2 + x| > 3`,
-      `|x - 2| < 3`
-    ],
-  },
-  {
-    id: 15,
-    text: `Is K a positive number? (1) |K^3| + 1 > K  (2) K + 1 > |K^3|`,
-    options: [
-      `Statement (1) ALONE is sufficient, but Statement (2) ALONE is not sufficient`,
-      `Statement (2) ALONE is sufficient, but Statement (1) ALONE is not sufficient`,
-      `BOTH statements TOGETHER are sufficient, but NEITHER statement ALONE is sufficient`,
-      `EACH statement ALONE is sufficient`,
-      `Statements (1) and (2) TOGETHER are NOT sufficient`
+      `|x − 2| < 3`,
     ],
   },
   {
     id: 17,
-    text: `Set T contains more than one element. Is the median of set T greater than its mean? (1) Set T has positive range. (2) The elements of the set are not consecutive integers`,
+    text: `El conjunto T contiene más de un elemento. ¿Es la mediana del conjunto T mayor que su media? (1) El conjunto T tiene rango positivo. (2) Los elementos del conjunto no son enteros consecutivos.`,
     options: [
-      `Statement (1) ALONE is sufficient, but Statement (2) ALONE is not sufficient`,
-      `Statement (2) ALONE is sufficient, but Statement (1) ALONE is not sufficient`,
-      `BOTH statements TOGETHER are sufficient, but NEITHER statement ALONE is sufficient`,
-      `EACH statement ALONE is sufficient`,
-      `Statements (1) and (2) TOGETHER are NOT sufficient`
+      `La afirmación (1) SOLA es suficiente, pero la (2) SOLA no lo es`,
+      `La afirmación (2) SOLA es suficiente, pero la (1) SOLA no lo es`,
+      `AMBAS afirmaciones JUNTAS son suficientes, pero NINGUNA por sí SOLA lo es`,
+      `CADA afirmación POR SÍ SOLA es suficiente`,
+      `Las afirmaciones (1) y (2) JUNTAS NO son suficientes`,
     ],
   },
   {
     id: 18,
-    text: `Set S consists of N elements. If N > 2, what is the standard deviation of S? (1) The mean and median of the set are equal. (2) The difference between any two elements of the set is equal.`,
+    text: `El conjunto S consta de N elementos. Si N > 2, ¿cuál es la desviación estándar de S? (1) La media y la mediana del conjunto son iguales. (2) La diferencia entre dos elementos cualesquiera del conjunto es la misma.`,
     options: [
-      `Statement (1) ALONE is sufficient, but Statement (2) ALONE is not sufficient`,
-      `Statement (2) ALONE is sufficient, but Statement (1) ALONE is not sufficient`,
-      `BOTH statements TOGETHER are sufficient, but NEITHER statement ALONE is sufficient`,
-      `EACH statement ALONE is sufficient`,
-      `Statements (1) and (2) TOGETHER are NOT sufficient`
+      `La afirmación (1) SOLA es suficiente, pero la (2) SOLA no lo es`,
+      `La afirmación (2) SOLA es suficiente, pero la (1) SOLA no lo es`,
+      `AMBAS afirmaciones JUNTAS son suficientes, pero NINGUNA por sí SOLA lo es`,
+      `CADA afirmación POR SÍ SOLA es suficiente`,
+      `Las afirmaciones (1) y (2) JUNTAS NO son suficientes`,
     ],
   },
   {
     id: 19,
-    text: `Is the mean of set S greater than its median? (1) All members of S are consecutive multiples of 3. (2) The sum of all members of S equals 75.`,
+    text: `¿Es la media del conjunto S mayor que su mediana? (1) Todos los elementos de S son múltiplos consecutivos de 3. (2) La suma de todos los elementos de S es igual a 75.`,
     options: [
-      `Statement (1) ALONE is sufficient, but Statement (2) ALONE is not sufficient`,
-      `Statement (2) ALONE is sufficient, but Statement (1) ALONE is not sufficient`,
-      `BOTH statements TOGETHER are sufficient, but NEITHER statement ALONE is sufficient`,
-      `EACH statement ALONE is sufficient`,
-      `Statements (1) and (2) TOGETHER are NOT sufficient`
+      `La afirmación (1) SOLA es suficiente, pero la (2) SOLA no lo es`,
+      `La afirmación (2) SOLA es suficiente, pero la (1) SOLA no lo es`,
+      `AMBAS afirmaciones JUNTAS son suficientes, pero NINGUNA por sí SOLA lo es`,
+      `CADA afirmación POR SÍ SOLA es suficiente`,
+      `Las afirmaciones (1) y (2) JUNTAS NO son suficientes`,
     ],
   },
   {
     id: 20,
-    text: `If a, b & c are integers and a < b < c, are a, b, c consecutive integers? (1) The median of {a!, b!, c!} is an odd number. (2) c! is a prime number.`,
+    text: `Si a, b y c son enteros y a < b < c, ¿son a, b, c enteros consecutivos? (1) La mediana de {a!, b!, c!} es un número impar. (2) c! es un número primo.`,
     options: [
-      `Statement (1) ALONE is sufficient, but Statement (2) ALONE is not sufficient`,
-      `Statement (2) ALONE is sufficient, but Statement (1) ALONE is not sufficient`,
-      `BOTH statements TOGETHER are sufficient, but NEITHER statement ALONE is sufficient`,
-      `EACH statement ALONE is sufficient`,
-      `Statements (1) and (2) TOGETHER are NOT sufficient`
+      `La afirmación (1) SOLA es suficiente, pero la (2) SOLA no lo es`,
+      `La afirmación (2) SOLA es suficiente, pero la (1) SOLA no lo es`,
+      `AMBAS afirmaciones JUNTAS son suficientes, pero NINGUNA por sí SOLA lo es`,
+      `CADA afirmación POR SÍ SOLA es suficiente`,
+      `Las afirmaciones (1) y (2) JUNTAS NO son suficientes`,
     ],
   },
   {
     id: 21,
-    text: `A set of 11 different integers has a median of 25 and a range of 50. What is the greatest possible integer that could be in this set?`,
-    options: [
-      `65`,
-      `70`,
-      `75`,
-      `80`,
-      `85`
-    ],
+    text: `Un conjunto de 11 enteros distintos tiene una mediana de 25 y un rango de 50. ¿Cuál es el mayor entero posible que podría estar en este conjunto?`,
+    options: [`65`, `70`, `75`, `80`, `85`],
   },
   {
     id: 22,
-    text: `Out of 100 people surveyed, 60 were women. If 10 were smoking women and 20 were smoking men, what percentage of men surveyed were non-smokers?`,
-    options: [
-      `10`,
-      `20`,
-      `30`,
-      `40`,
-      `50`
-    ],
+    text: `De 100 personas encuestadas, 60 eran mujeres. Si 10 eran mujeres fumadoras y 20 eran hombres fumadores, ¿qué porcentaje de los hombres encuestados eran no fumadores?`,
+    options: [`10`, `20`, `30`, `40`, `50`],
   },
   {
     id: 24,
-    text: `A bus from city M is traveling to city N at a constant speed while another bus makes the same journey in the opposite direction at the same speed. They meet at point P after 2 hours. The next day one bus is delayed 24 minutes and the other leaves 36 minutes earlier. If they meet 24 miles from point P, what is the distance between the two cities?`,
-    options: [
-      `48`,
-      `72`,
-      `96`,
-      `120`,
-      `192`
-    ],
+    text: `Un autobús de la ciudad M viaja hacia la ciudad N a velocidad constante mientras que otro autobús hace el mismo recorrido en sentido contrario a la misma velocidad. Se encuentran en el punto P después de 2 horas. Al día siguiente, un autobús se retrasa 24 minutos y el otro sale 36 minutos antes. Si se encuentran a 24 millas del punto P, ¿cuál es la distancia entre las dos ciudades?`,
+    options: [`48`, `72`, `96`, `120`, `192`],
   },
   {
     id: 25,
-    text: `A train is traveling at a constant speed
-and after making three one-hour stops
-reaches its destination. After waiting an
-hour it makes a return journey stopping a
-total of ten times, thirty minutes each but
-traveling at twice the speed. If both trips
-took the same amount of time, how many
-hours was the roundtrip?`,
-    options: [
-      `14`,
-      `15`,
-      `16`,
-      `17`,
-      `18`
-    ],
+    text: `Un tren viaja a velocidad constante y, después de hacer tres paradas de una hora, llega a su destino. Tras esperar una hora, hace el viaje de regreso parando un total de diez veces, treinta minutos cada una, pero viajando al doble de velocidad. Si ambos viajes tardaron lo mismo, ¿cuántas horas duró el viaje de ida y vuelta?`,
+    options: [`14`, `15`, `16`, `17`, `18`],
   },
   {
     id: 26,
-    text: `A cook went to a market to buy some eggs and paid $12. But since the eggs were quite small, he talked the seller into adding two more eggs, free of charge. As the two eggs were added, the price per dozen went down by a dollar. How many eggs did the cook bring home from the market?`,
-    options: [
-      `8`,
-      `12`,
-      `15`,
-      `16`,
-      `18`
-    ],
+    text: `Un cocinero fue al mercado a comprar huevos y pagó $12. Pero como los huevos eran bastante pequeños, convenció al vendedor de añadirle dos huevos más, gratis. Al añadir los dos huevos, el precio por docena bajó un dólar. ¿Cuántos huevos se llevó el cocinero a casa?`,
+    options: [`8`, `12`, `15`, `16`, `18`],
   },
   {
     id: 27,
-    text: `It takes computer A 6 hours and 40 minutes to finish a job. Computer B can process the same job in 10 hours. How long will it take both computers working together to finish the job?`,
+    text: `La computadora A tarda 6 horas y 40 minutos en terminar un trabajo. La computadora B puede procesar el mismo trabajo en 10 horas. ¿Cuánto tardarán ambas computadoras trabajando juntas en terminar el trabajo?`,
     options: [
-      `6 hours and 20 minutes`,
-      `5 hours and 10 minutes`,
-      `4 hours and 40 minutes`,
-      `4 hours`,
-      `3 hours and 20 minutes`
+      `6 horas y 20 minutos`,
+      `5 horas y 10 minutos`,
+      `4 horas y 40 minutos`,
+      `4 horas`,
+      `3 horas y 20 minutos`,
     ],
   },
   {
     id: 28,
-    text: `Workers A, B, and C can complete a task in 10, 5, and x hours respectively. A starts alone, B joins 2 hours later, C joins 2 hours after that, and A, B, C together finish in 15 minutes. What is x?`,
-    options: [
-      `1`,
-      `1.25`,
-      `2`,
-      `2.5`,
-      `4`
-    ],
+    text: `Los trabajadores A, B y C pueden completar una tarea en 10, 5 y x horas respectivamente. A empieza solo, B se une 2 horas después, C se une 2 horas después de eso, y A, B y C juntos terminan en 15 minutos. ¿Cuál es x?`,
+    options: [`1`, `1,25`, `2`, `2,5`, `4`],
   },
   {
     id: 29,
-    text: `Mac finishes a job in M days, Jack in J days. After working together T days, Mac left and Jack finished in R days. If both completed equal amounts of work, how many days would Jack need alone for the entire job? (1) M = 20 days  (2) R = 10 days`,
+    text: `Mac termina un trabajo en M días, Jack en J días. Después de trabajar juntos T días, Mac se va y Jack termina en R días. Si ambos completaron la misma cantidad de trabajo, ¿cuántos días necesitaría Jack solo para todo el trabajo? (1) M = 20 días  (2) R = 10 días`,
     options: [
-      `Statement (1) ALONE is sufficient, but Statement (2) ALONE is not sufficient`,
-      `Statement (2) ALONE is sufficient, but Statement (1) ALONE is not sufficient`,
-      `BOTH statements TOGETHER are sufficient, but NEITHER statement ALONE is sufficient`,
-      `EACH statement ALONE is sufficient`,
-      `Statements (1) and (2) TOGETHER are NOT sufficient`
+      `La afirmación (1) SOLA es suficiente, pero la (2) SOLA no lo es`,
+      `La afirmación (2) SOLA es suficiente, pero la (1) SOLA no lo es`,
+      `AMBAS afirmaciones JUNTAS son suficientes, pero NINGUNA por sí SOLA lo es`,
+      `CADA afirmación POR SÍ SOLA es suficiente`,
+      `Las afirmaciones (1) y (2) JUNTAS NO son suficientes`,
     ],
   },
   {
     id: 30,
-    text: `Painters A and B can paint a house alone in 20 and 30 days. They started together, A left for some days, then B worked alone for 5 days, then A and B together finished in 4 days. After how many days of working together did A leave?`,
-    options: [
-      `4`,
-      `5`,
-      `6`,
-      `7`,
-      `8`
-    ],
+    text: `Los pintores A y B pueden pintar una casa solos en 20 y 30 días. Empezaron juntos, A se fue por algunos días, luego B trabajó solo durante 5 días, y luego A y B juntos terminaron en 4 días. ¿Después de cuántos días trabajando juntos se fue A?`,
+    options: [`4`, `5`, `6`, `7`, `8`],
   },
   {
     id: 31,
-    text: `How many liters of pure alcohol must be added to a 40-liter solution that is 10% alcohol in order to double the alcohol proportion?`,
-    options: [
-      `4`,
-      `5`,
-      `10`,
-      `20`,
-      `40`
-    ],
+    text: `¿Cuántos litros de alcohol puro deben añadirse a una solución de 40 litros que contiene 10 % de alcohol para duplicar la proporción de alcohol?`,
+    options: [`4`, `5`, `10`, `20`, `40`],
   },
   {
     id: 32,
-    text: `A Food and Drug lab has two new samples: a 240 gram cup of drip coffee, which contains 124 mg of caffeine, and a 60 gram cup of espresso, containing 160 mg of caffeine. If a technician were to combine the two drinks so that the new mixture contained 50% coffee and 50% espresso, how many mg of caffeine would the new drink contain?`,
-    options: [
-      `111`,
-      `121`,
-      `144`,
-      `191`,
-      `382`
-    ],
+    text: `Un laboratorio de Alimentos y Medicamentos tiene dos muestras nuevas: una taza de 240 gramos de café de filtro, que contiene 124 mg de cafeína, y una taza de 60 gramos de espresso, que contiene 160 mg de cafeína. Si un técnico combinara ambas bebidas de modo que la nueva mezcla contuviera 50 % de café y 50 % de espresso, ¿cuántos mg de cafeína contendría la nueva bebida?`,
+    options: [`111`, `121`, `144`, `191`, `382`],
   },
 ];
 
