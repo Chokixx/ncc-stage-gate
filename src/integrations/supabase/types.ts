@@ -104,6 +104,51 @@ export type Database = {
         }
         Relationships: []
       }
+      stage_content: {
+        Row: {
+          case_data_name: string | null
+          case_data_url: string | null
+          case_pdf_name: string | null
+          case_pdf_url: string | null
+          created_at: string
+          id: string
+          intro: string
+          sponsor_link: string | null
+          sponsor_logo_url: string | null
+          sponsor_name: string
+          stage: string
+          updated_at: string
+        }
+        Insert: {
+          case_data_name?: string | null
+          case_data_url?: string | null
+          case_pdf_name?: string | null
+          case_pdf_url?: string | null
+          created_at?: string
+          id?: string
+          intro?: string
+          sponsor_link?: string | null
+          sponsor_logo_url?: string | null
+          sponsor_name?: string
+          stage: string
+          updated_at?: string
+        }
+        Update: {
+          case_data_name?: string | null
+          case_data_url?: string | null
+          case_pdf_name?: string | null
+          case_pdf_url?: string | null
+          created_at?: string
+          id?: string
+          intro?: string
+          sponsor_link?: string | null
+          sponsor_logo_url?: string | null
+          sponsor_name?: string
+          stage?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
