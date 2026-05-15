@@ -1,0 +1,1 @@
+DELETE FROM public.gmat_submissions WHERE team = 'Equipo 100';
