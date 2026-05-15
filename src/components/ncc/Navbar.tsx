@@ -9,7 +9,7 @@ const links = [
   { label: "GMAT", target: "gmat" },
   { label: "ALPHA", target: "alpha" },
   { label: "BETA", target: "beta" },
-  { label: "OMEGA", target: "omega" },
+  { label: "DELTA", target: "delta" },
   { label: "Contacto", target: "contacto" },
 ];
 
