@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent, type ChangeEvent } from "react";
+import { Fragment, useEffect, useState, type FormEvent, type ChangeEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Lock,
@@ -23,7 +23,9 @@ import {
   adminReplaceTeams,
   adminAddTeam,
   adminDeleteTeam,
+  adminListSubmissions,
 } from "@/lib/ncc/admin.functions";
+import { answersToLetters, durationMinutes } from "@/lib/ncc/gmat-format";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -139,6 +141,8 @@ function AdminPage() {
   return <AdminDashboard password={password} onLogout={onLogout} />;
 }
 
+type Tab = "sponsors" | "teams" | "submissions";
+
 function AdminDashboard({
   password,
   onLogout,
@@ -146,6 +150,12 @@ function AdminDashboard({
   password: string;
   onLogout: () => void;
 }) {
+  const [tab, setTab] = useState<Tab>("sponsors");
+  const tabs: { key: Tab; label: string }[] = [
+    { key: "sponsors", label: "Patrocinadores" },
+    { key: "teams", label: "Equipos GMAT" },
+    { key: "submissions", label: "Resultados" },
+  ];
   return (
     <div className="min-h-screen bg-[var(--ncc-cream)] flex flex-col">
       <Navbar />
@@ -169,9 +179,28 @@ function AdminDashboard({
           </div>
         </section>
 
-        <div className="max-w-6xl mx-auto px-6 py-10 space-y-12">
-          <SponsorsAdmin password={password} />
-          <TeamsAdmin password={password} />
+        <div className="max-w-6xl mx-auto px-6 pt-8">
+          <div className="flex gap-1 border-b border-[var(--ncc-steel)]">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`px-4 py-2.5 text-sm font-medium -mb-px border-b-2 transition-colors ${
+                  tab === t.key
+                    ? "border-[var(--ncc-deep)] text-[var(--ncc-deep)]"
+                    : "border-transparent text-[var(--muted-foreground)] hover:text-[var(--ncc-deep)]"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          {tab === "sponsors" && <SponsorsAdmin password={password} />}
+          {tab === "teams" && <TeamsAdmin password={password} />}
+          {tab === "submissions" && <SubmissionsAdmin password={password} />}
         </div>
       </main>
       <Footer />
@@ -642,5 +671,156 @@ function TeamRow({
         <Trash2 className="h-3.5 w-3.5" />
       </button>
     </div>
+  );
+}
+
+// ============== SUBMISSIONS ==============
+type Submission = {
+  id: string;
+  team: string;
+  score: number;
+  total: number;
+  started_at: string | null;
+  submitted_at: string;
+  answers: unknown;
+};
+
+function normalizeAnswers(a: unknown): number[] {
+  if (Array.isArray(a)) return a as number[];
+  const inner = (a as { answers?: unknown } | null)?.answers;
+  if (Array.isArray(inner)) return inner as number[];
+  return [];
+}
+
+function fmtDate(iso: string | null): string {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleString("es-CO", {
+      timeZone: "America/Bogota",
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+function SubmissionsAdmin({ password }: { password: string }) {
+  const list = useServerFn(adminListSubmissions);
+  const [subs, setSubs] = useState<Submission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState<string | null>(null);
+
+  const reload = async () => {
+    setLoading(true);
+    try {
+      const res = await list({ data: { password } });
+      setSubs(res.submissions as Submission[]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <section className="bg-white rounded-xl border border-[var(--ncc-steel)] p-6 md:p-8 shadow-[0_2px_12px_rgba(18,91,80,0.05)]">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="font-serif text-2xl text-[var(--ncc-deep)]">
+            Resultados del GMAT
+          </h2>
+          <p className="text-sm text-[var(--muted-foreground)] mt-1">
+            {subs.length} envío{subs.length === 1 ? "" : "s"} · ordenados por puntaje.
+          </p>
+        </div>
+        <button
+          onClick={() => void reload()}
+          className="text-xs px-3 py-1.5 rounded-md border border-[var(--ncc-steel)] hover:bg-[var(--ncc-mint)]"
+        >
+          Refrescar
+        </button>
+      </div>
+
+      {loading ? (
+        <p className="mt-6 text-sm text-[var(--muted-foreground)]">Cargando…</p>
+      ) : subs.length === 0 ? (
+        <p className="mt-6 text-sm text-[var(--muted-foreground)]">
+          Aún no hay envíos.
+        </p>
+      ) : (
+        <div className="mt-6 overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-[0.12em] text-[var(--ncc-medium)] border-b border-[var(--ncc-steel)]">
+                <th className="py-2 pr-3">#</th>
+                <th className="py-2 pr-3">Equipo</th>
+                <th className="py-2 pr-3">Puntaje</th>
+                <th className="py-2 pr-3">Tiempo (min)</th>
+                <th className="py-2 pr-3">Inicio</th>
+                <th className="py-2 pr-3">Envío</th>
+                <th className="py-2 pr-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {subs.map((s, i) => {
+                const ans = normalizeAnswers(s.answers);
+                const dur = durationMinutes(s.started_at, s.submitted_at) || "—";
+                const isOpen = open === s.id;
+                return (
+                  <Fragment key={s.id}>
+                    <tr className="border-b border-[var(--ncc-steel)] hover:bg-[var(--ncc-cream)]/40">
+                      <td className="py-2 pr-3 tabular-nums text-[var(--muted-foreground)]">
+                        {i + 1}
+                      </td>
+                      <td className="py-2 pr-3 font-medium text-[var(--ncc-deep)]">
+                        {s.team}
+                      </td>
+                      <td className="py-2 pr-3 tabular-nums">
+                        <span className="font-semibold text-[var(--ncc-deep)]">
+                          {s.score}
+                        </span>
+                        <span className="text-[var(--muted-foreground)]">
+                          /{s.total}
+                        </span>
+                      </td>
+                      <td className="py-2 pr-3 tabular-nums">{dur}</td>
+                      <td className="py-2 pr-3 text-[var(--muted-foreground)]">
+                        {fmtDate(s.started_at)}
+                      </td>
+                      <td className="py-2 pr-3 text-[var(--muted-foreground)]">
+                        {fmtDate(s.submitted_at)}
+                      </td>
+                      <td className="py-2 pr-3 text-right">
+                        <button
+                          onClick={() => setOpen(isOpen ? null : s.id)}
+                          className="text-xs text-[var(--ncc-deep)] hover:underline"
+                        >
+                          {isOpen ? "Ocultar" : "Ver respuestas"}
+                        </button>
+                      </td>
+                    </tr>
+                    {isOpen && (
+                      <tr className="border-b border-[var(--ncc-steel)]">
+                        <td colSpan={7} className="py-3 pr-3">
+                          <p className="text-xs text-[var(--muted-foreground)] font-mono break-all">
+                            {ans.length > 0
+                              ? answersToLetters(ans)
+                              : "Sin datos."}
+                          </p>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }
