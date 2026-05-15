@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Download, FileText } from "lucide-react";
+import { ArrowLeft, Download, FileText, ExternalLink } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
+import { supabase } from "@/integrations/supabase/client";
 
 type StageId = "alpha" | "beta" | "delta";
 
@@ -37,10 +38,22 @@ export const Route = createFileRoute("/etapa/$stage")({
   }),
 });
 
+type StageContent = {
+  intro: string;
+  sponsor_name: string;
+  sponsor_logo_url: string | null;
+  sponsor_link: string | null;
+  case_pdf_url: string | null;
+  case_pdf_name: string | null;
+  case_data_url: string | null;
+  case_data_name: string | null;
+};
+
 function StagePage() {
   const { stage } = Route.useParams();
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const [content, setContent] = useState<StageContent | null>(null);
 
   const stageId = stage as StageId;
   const config = STAGE_CONFIG[stageId];
@@ -58,6 +71,14 @@ function StagePage() {
       return;
     }
     setReady(true);
+    void supabase
+      .from("stage_content")
+      .select(
+        "intro, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_url, case_data_name",
+      )
+      .eq("stage", stageId)
+      .maybeSingle()
+      .then(({ data }) => setContent((data as StageContent) ?? null));
   }, [stageId, config, navigate]);
 
   if (!ready || !config) {
