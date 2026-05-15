@@ -95,7 +95,7 @@ function GmatTeamSelectPage() {
             <p className="text-xs uppercase tracking-[0.22em] opacity-80">Etapa</p>
             <h1 className="font-serif text-5xl md:text-7xl mt-2">GMAT</h1>
             <p className="mt-4 text-white/85 max-w-2xl text-lg">
-              Examen de admisión cronometrado — 29 preguntas, 45 minutos.
+              Examen de admisión cronometrado — 20 preguntas, 45 minutos.
             </p>
           </div>
         </section>

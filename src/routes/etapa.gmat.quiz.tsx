@@ -3,7 +3,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Clock, Send } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
-import { GMAT_QUESTIONS, GMAT_DURATION_MINUTES } from "@/lib/ncc/gmat-questions";
+import {
+  GMAT_QUESTIONS,
+  GMAT_DURATION_MINUTES,
+  GMAT_QUIZ_SIZE,
+  type GmatQuestion,
+} from "@/lib/ncc/gmat-questions";
 
 export const Route = createFileRoute("/etapa/gmat/quiz")({
   component: GmatQuizPage,
@@ -23,19 +28,30 @@ function formatTime(ms: number) {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+function pickRandomQuestions(): GmatQuestion[] {
+  const pool = [...GMAT_QUESTIONS];
+  // Fisher-Yates
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, GMAT_QUIZ_SIZE);
+}
+
 function GmatQuizPage() {
   const navigate = useNavigate();
   const [team, setTeam] = useState<string | null>(null);
   const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<GmatQuestion[] | null>(null);
   const [answers, setAnswers] = useState<number[]>(() =>
-    Array(GMAT_QUESTIONS.length).fill(-1),
+    Array(GMAT_QUIZ_SIZE).fill(-1),
   );
   const [now, setNow] = useState<number>(() => Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ score: number; total: number } | null>(null);
   const submittedRef = useRef(false);
 
-  // Verificar acceso + recuperar contexto
+  // Verificar acceso + recuperar/crear contexto
   useEffect(() => {
     if (typeof window === "undefined") return;
     const unlocked = localStorage.getItem("ncc_gmat_unlocked") === "true";
@@ -47,6 +63,32 @@ function GmatQuizPage() {
     }
     setTeam(t);
     setStartedAt(s);
+
+    // Recuperar set de preguntas (para que recargas no cambien el examen)
+    const savedIdsRaw = sessionStorage.getItem("ncc_gmat_question_ids");
+    let selected: GmatQuestion[] | null = null;
+    if (savedIdsRaw) {
+      try {
+        const ids = JSON.parse(savedIdsRaw) as number[];
+        if (Array.isArray(ids) && ids.length === GMAT_QUIZ_SIZE) {
+          const map = new Map(GMAT_QUESTIONS.map((q) => [q.id, q]));
+          const mapped = ids
+            .map((id) => map.get(id))
+            .filter((q): q is GmatQuestion => !!q);
+          if (mapped.length === GMAT_QUIZ_SIZE) selected = mapped;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    if (!selected) {
+      selected = pickRandomQuestions();
+      sessionStorage.setItem(
+        "ncc_gmat_question_ids",
+        JSON.stringify(selected.map((q) => q.id)),
+      );
+    }
+    setQuestions(selected);
   }, [navigate]);
 
   // Tick del cronómetro
@@ -65,20 +107,26 @@ function GmatQuizPage() {
 
   const submit = useCallback(
     async (auto: boolean) => {
-      if (submittedRef.current || !team || !startedAt) return;
+      if (submittedRef.current || !team || !startedAt || !questions) return;
       submittedRef.current = true;
       setSubmitting(true);
       try {
         const res = await fetch("/api/public/gmat/submit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ team, answers, startedAt }),
+          body: JSON.stringify({
+            team,
+            questionIds: questions.map((q) => q.id),
+            answers,
+            startedAt,
+          }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error ?? "Error al enviar");
         setResult({ score: data.score, total: data.total });
         sessionStorage.removeItem("ncc_gmat_team");
         sessionStorage.removeItem("ncc_gmat_started_at");
+        sessionStorage.removeItem("ncc_gmat_question_ids");
       } catch (e) {
         console.error(e);
         if (!auto) {
@@ -89,7 +137,7 @@ function GmatQuizPage() {
         setSubmitting(false);
       }
     },
-    [answers, startedAt, team],
+    [answers, questions, startedAt, team],
   );
 
   // Auto-submit al acabar el tiempo
@@ -100,7 +148,7 @@ function GmatQuizPage() {
     }
   }, [remaining, endsAt, submit]);
 
-  if (!team || !startedAt) {
+  if (!team || !startedAt || !questions) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
@@ -155,7 +203,7 @@ function GmatQuizPage() {
           <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
             <div className="text-sm text-[var(--ncc-deep)]">
               <span className="font-medium">{team}</span>
-              <span className="text-[var(--muted-foreground)]"> · {answeredCount}/{GMAT_QUESTIONS.length} respondidas</span>
+              <span className="text-[var(--muted-foreground)]"> · {answeredCount}/{questions.length} respondidas</span>
             </div>
             <div
               className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md font-mono text-sm font-semibold ${lowTime ? "text-[#b3471a]" : "text-[var(--ncc-deep)]"}`}
@@ -169,7 +217,7 @@ function GmatQuizPage() {
 
         <section className="max-w-4xl mx-auto px-6 py-10">
           <ol className="space-y-6">
-            {GMAT_QUESTIONS.map((q, qi) => (
+            {questions.map((q, qi) => (
               <li
                 key={q.id}
                 className="bg-white rounded-xl border border-[var(--ncc-steel)] p-6 shadow-[0_2px_12px_rgba(18,91,80,0.05)]"
