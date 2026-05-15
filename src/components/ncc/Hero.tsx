@@ -23,7 +23,9 @@ export function Hero() {
 
       <div className="relative max-w-5xl mx-auto px-6 py-24 md:py-32">
         <div className="flex justify-center mb-8">
-          <NCCLogo size={88} variant="white" className="drop-shadow-md" />
+          <div className="bg-white rounded-full p-4 shadow-lg">
+            <NCCLogo size={88} className="drop-shadow-md" />
+          </div>
         </div>
         <p className="font-serif italic text-lg md:text-xl mb-10 opacity-95 text-center">
           Introducción

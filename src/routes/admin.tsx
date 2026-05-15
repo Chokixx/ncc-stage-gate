@@ -24,6 +24,10 @@ import {
   adminAddTeam,
   adminDeleteTeam,
   adminListSubmissions,
+  adminListStageContent,
+  adminUpdateStageContent,
+  adminUploadStageFile,
+  adminClearStageFile,
 } from "@/lib/ncc/admin.functions";
 import { answersToLetters, durationMinutes } from "@/lib/ncc/gmat-format";
 
@@ -141,7 +145,7 @@ function AdminPage() {
   return <AdminDashboard password={password} onLogout={onLogout} />;
 }
 
-type Tab = "sponsors" | "teams" | "submissions";
+type Tab = "sponsors" | "teams" | "stages" | "submissions";
 
 function AdminDashboard({
   password,
@@ -154,6 +158,7 @@ function AdminDashboard({
   const tabs: { key: Tab; label: string }[] = [
     { key: "sponsors", label: "Patrocinadores" },
     { key: "teams", label: "Equipos GMAT" },
+    { key: "stages", label: "Etapas" },
     { key: "submissions", label: "Resultados" },
   ];
   return (
@@ -200,6 +205,7 @@ function AdminDashboard({
         <div className="max-w-6xl mx-auto px-6 py-8">
           {tab === "sponsors" && <SponsorsAdmin password={password} />}
           {tab === "teams" && <TeamsAdmin password={password} />}
+          {tab === "stages" && <StagesAdmin password={password} />}
           {tab === "submissions" && <SubmissionsAdmin password={password} />}
         </div>
       </main>
@@ -822,5 +828,323 @@ function SubmissionsAdmin({ password }: { password: string }) {
         </div>
       )}
     </section>
+  );
+}
+
+// ============== STAGES ==============
+type StageRow = {
+  id: string;
+  stage: "alpha" | "beta" | "delta";
+  intro: string;
+  sponsor_name: string;
+  sponsor_logo_url: string | null;
+  sponsor_link: string | null;
+  case_pdf_url: string | null;
+  case_pdf_name: string | null;
+  case_data_url: string | null;
+  case_data_name: string | null;
+};
+
+const STAGE_LABELS: Record<StageRow["stage"], string> = {
+  alpha: "ALPHA",
+  beta: "BETA",
+  delta: "DELTA",
+};
+
+function StagesAdmin({ password }: { password: string }) {
+  const list = useServerFn(adminListStageContent);
+  const update = useServerFn(adminUpdateStageContent);
+  const upload = useServerFn(adminUploadStageFile);
+  const clear = useServerFn(adminClearStageFile);
+
+  const [stages, setStages] = useState<StageRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const reload = async () => {
+    setLoading(true);
+    try {
+      const res = await list({ data: { password } });
+      setStages(res.stages as StageRow[]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (loading) {
+    return <p className="text-sm text-[var(--muted-foreground)]">Cargando…</p>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {stages.map((s) => (
+        <StageCard
+          key={s.id}
+          row={s}
+          onSave={async (intro, sponsor_name, sponsor_link) => {
+            await update({
+              data: {
+                password,
+                stage: s.stage,
+                intro,
+                sponsor_name,
+                sponsor_link: sponsor_link || null,
+              },
+            });
+            await reload();
+          }}
+          onUpload={async (kind, file) => {
+            const buf = await file.arrayBuffer();
+            const bytes = new Uint8Array(buf);
+            let bin = "";
+            for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+            const base64 = btoa(bin);
+            await upload({
+              data: {
+                password,
+                stage: s.stage,
+                kind,
+                filename: file.name,
+                contentType: file.type || "application/octet-stream",
+                base64,
+              },
+            });
+            await reload();
+          }}
+          onClear={async (kind) => {
+            await clear({ data: { password, stage: s.stage, kind } });
+            await reload();
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+type FileKind = "sponsor_logo" | "case_pdf" | "case_data";
+
+function StageCard({
+  row,
+  onSave,
+  onUpload,
+  onClear,
+}: {
+  row: StageRow;
+  onSave: (intro: string, sponsorName: string, sponsorLink: string) => Promise<void>;
+  onUpload: (kind: FileKind, file: File) => Promise<void>;
+  onClear: (kind: FileKind) => Promise<void>;
+}) {
+  const [intro, setIntro] = useState(row.intro);
+  const [sponsorName, setSponsorName] = useState(row.sponsor_name);
+  const [sponsorLink, setSponsorLink] = useState(row.sponsor_link ?? "");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setIntro(row.intro);
+    setSponsorName(row.sponsor_name);
+    setSponsorLink(row.sponsor_link ?? "");
+  }, [row.id, row.intro, row.sponsor_name, row.sponsor_link]);
+
+  const dirty =
+    intro !== row.intro ||
+    sponsorName !== row.sponsor_name ||
+    (sponsorLink || "") !== (row.sponsor_link ?? "");
+
+  const wrap = async (fn: () => Promise<void>) => {
+    setBusy(true);
+    try {
+      await fn();
+    } catch (e) {
+      console.error(e);
+      alert((e as Error).message || "Error");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const fileInput = (kind: FileKind, accept: string, label: string) => (
+    <label className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-[var(--ncc-steel)] cursor-pointer hover:bg-[var(--ncc-mint)]">
+      <Upload className="h-3.5 w-3.5" />
+      {label}
+      <input
+        type="file"
+        accept={accept}
+        className="hidden"
+        disabled={busy}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (f) void wrap(() => onUpload(kind, f));
+        }}
+      />
+    </label>
+  );
+
+  return (
+    <section className="bg-white rounded-xl border border-[var(--ncc-steel)] p-6 md:p-8 shadow-[0_2px_12px_rgba(18,91,80,0.05)]">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-serif text-2xl text-[var(--ncc-deep)]">
+          Etapa {STAGE_LABELS[row.stage]}
+        </h2>
+      </div>
+
+      <label className="block text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium mb-2">
+        Introducción del caso
+      </label>
+      <textarea
+        value={intro}
+        onChange={(e) => setIntro(e.target.value)}
+        rows={4}
+        placeholder="Breve introducción al caso de esta etapa…"
+        className="w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm focus:border-[var(--ncc-deep)] outline-none"
+      />
+
+      <div className="mt-6 grid md:grid-cols-2 gap-6">
+        {/* Sponsor */}
+        <div className="border border-[var(--ncc-steel)] rounded-lg p-4">
+          <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium mb-3">
+            Patrocinador del caso
+          </p>
+          <div className="aspect-[16/9] bg-[var(--ncc-cream)] rounded-md flex items-center justify-center overflow-hidden border border-[var(--ncc-steel)] mb-3">
+            {row.sponsor_logo_url ? (
+              <img
+                src={row.sponsor_logo_url}
+                alt={row.sponsor_name || "Patrocinador"}
+                className="w-full h-full object-contain p-3"
+              />
+            ) : (
+              <span className="text-xs text-[var(--muted-foreground)]">Sin logo</span>
+            )}
+          </div>
+          <input
+            type="text"
+            value={sponsorName}
+            onChange={(e) => setSponsorName(e.target.value)}
+            placeholder="Nombre del patrocinador"
+            className="w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm mb-2 focus:border-[var(--ncc-deep)] outline-none"
+          />
+          <input
+            type="url"
+            value={sponsorLink}
+            onChange={(e) => setSponsorLink(e.target.value)}
+            placeholder="https://… (enlace del patrocinador)"
+            className="w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm mb-3 focus:border-[var(--ncc-deep)] outline-none"
+          />
+          <div className="flex flex-wrap gap-2">
+            {fileInput("sponsor_logo", "image/*", "Subir logo")}
+            {row.sponsor_logo_url && (
+              <button
+                onClick={() => void wrap(() => onClear("sponsor_logo"))}
+                disabled={busy}
+                className="text-xs text-[var(--muted-foreground)] hover:text-[var(--ncc-deep)] underline"
+              >
+                Quitar logo
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Case files */}
+        <div className="border border-[var(--ncc-steel)] rounded-lg p-4">
+          <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium mb-3">
+            Archivos del caso
+          </p>
+          <div className="space-y-3">
+            <FileSlot
+              label="Brief / PDF del caso"
+              url={row.case_pdf_url}
+              name={row.case_pdf_name}
+              uploadBtn={fileInput("case_pdf", "application/pdf", "Subir PDF")}
+              onClear={
+                row.case_pdf_url
+                  ? () => void wrap(() => onClear("case_pdf"))
+                  : undefined
+              }
+              busy={busy}
+            />
+            <FileSlot
+              label="Base de datos del caso"
+              url={row.case_data_url}
+              name={row.case_data_name}
+              uploadBtn={fileInput(
+                "case_data",
+                ".csv,.xlsx,.xls,.zip,.json,application/octet-stream",
+                "Subir dataset",
+              )}
+              onClear={
+                row.case_data_url
+                  ? () => void wrap(() => onClear("case_data"))
+                  : undefined
+              }
+              busy={busy}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 flex justify-end">
+        <button
+          disabled={!dirty || busy}
+          onClick={() =>
+            void wrap(() => onSave(intro, sponsorName, sponsorLink))
+          }
+          className="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-[var(--ncc-deep)] text-white disabled:opacity-40"
+        >
+          <Save className="h-4 w-4" /> Guardar cambios
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function FileSlot({
+  label,
+  url,
+  name,
+  uploadBtn,
+  onClear,
+  busy,
+}: {
+  label: string;
+  url: string | null;
+  name: string | null;
+  uploadBtn: React.ReactNode;
+  onClear?: () => void;
+  busy: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 border border-[var(--ncc-steel)] rounded-md p-3">
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-[var(--ncc-deep)]">{label}</p>
+        {url ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-[var(--ncc-medium)] underline truncate block"
+          >
+            {name ?? "Archivo"}
+          </a>
+        ) : (
+          <p className="text-xs text-[var(--muted-foreground)]">Sin archivo</p>
+        )}
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        {uploadBtn}
+        {url && onClear && (
+          <button
+            onClick={onClear}
+            disabled={busy}
+            className="text-xs text-[var(--muted-foreground)] hover:text-[var(--ncc-deep)] underline"
+          >
+            Quitar
+          </button>
+        )}
+      </div>
+    </div>
   );
 }

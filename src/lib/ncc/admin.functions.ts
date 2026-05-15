@@ -226,3 +226,122 @@ export const adminListSubmissions = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { submissions: rows ?? [] };
   });
+
+// ---------- Stage Content ----------
+const StageId = z.enum(["alpha", "beta", "delta"]);
+const FileKind = z.enum(["sponsor_logo", "case_pdf", "case_data"]);
+
+export const adminListStageContent = createServerFn({ method: "POST" })
+  .inputValidator((i) => z.object({ password: z.string().min(1).max(200) }).parse(i))
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    const { data: rows, error } = await supabaseAdmin
+      .from("stage_content")
+      .select(
+        "id, stage, intro, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_url, case_data_name, updated_at",
+      )
+      .order("stage");
+    if (error) throw new Error(error.message);
+    return { stages: rows ?? [] };
+  });
+
+export const adminUpdateStageContent = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z
+      .object({
+        password: z.string().min(1).max(200),
+        stage: StageId,
+        intro: z.string().max(5000),
+        sponsor_name: z.string().max(200),
+        sponsor_link: z.string().url().max(2000).nullable(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    const { error } = await supabaseAdmin
+      .from("stage_content")
+      .update({
+        intro: data.intro,
+        sponsor_name: data.sponsor_name,
+        sponsor_link: data.sponsor_link,
+      })
+      .eq("stage", data.stage);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminUploadStageFile = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z
+      .object({
+        password: z.string().min(1).max(200),
+        stage: StageId,
+        kind: FileKind,
+        filename: z.string().min(1).max(200),
+        contentType: z.string().min(1).max(100),
+        base64: z.string().min(1).max(20_000_000),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
+    const safeName = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `${data.stage}/${data.kind}/${Date.now()}_${safeName}`;
+    const { error: upErr } = await supabaseAdmin.storage
+      .from("stage-files")
+      .upload(path, bytes, { contentType: data.contentType, upsert: true });
+    if (upErr) throw new Error(upErr.message);
+    const { data: pub } = supabaseAdmin.storage.from("stage-files").getPublicUrl(path);
+
+    const publicUrl = pub.publicUrl;
+    let upd;
+    if (data.kind === "sponsor_logo") {
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ sponsor_logo_url: publicUrl })
+        .eq("stage", data.stage);
+    } else if (data.kind === "case_pdf") {
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ case_pdf_url: publicUrl, case_pdf_name: data.filename })
+        .eq("stage", data.stage);
+    } else {
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ case_data_url: publicUrl, case_data_name: data.filename })
+        .eq("stage", data.stage);
+    }
+    const { error } = await upd;
+    if (error) throw new Error(error.message);
+    return { url: publicUrl };
+  });
+
+export const adminClearStageFile = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z.object({ password: z.string().min(1).max(200), stage: StageId, kind: FileKind }).parse(i),
+  )
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    let upd;
+    if (data.kind === "sponsor_logo") {
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ sponsor_logo_url: null })
+        .eq("stage", data.stage);
+    } else if (data.kind === "case_pdf") {
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ case_pdf_url: null, case_pdf_name: null })
+        .eq("stage", data.stage);
+    } else {
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ case_data_url: null, case_data_name: null })
+        .eq("stage", data.stage);
+    }
+    const { error } = await upd;
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
