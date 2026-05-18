@@ -238,7 +238,7 @@ export const adminListStageContent = createServerFn({ method: "POST" })
     const { data: rows, error } = await supabaseAdmin
       .from("stage_content")
       .select(
-        "id, stage, intro, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_url, case_data_name, updated_at",
+        "id, stage, intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_url, case_data_name, updated_at",
       )
       .order("stage");
     if (error) throw new Error(error.message);
