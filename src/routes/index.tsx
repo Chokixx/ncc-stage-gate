@@ -4,6 +4,7 @@ import { Hero } from "@/components/ncc/Hero";
 import { MisionVision } from "@/components/ncc/MisionVision";
 import { StageGate } from "@/components/ncc/StageGate";
 import { Patrocinadores } from "@/components/ncc/Patrocinadores";
+import { Inscripcion } from "@/components/ncc/Inscripcion";
 import { Contacto } from "@/components/ncc/Contacto";
 import { Footer } from "@/components/ncc/Footer";
 import alphaIcon from "@/assets/alpha-letter.png";
@@ -32,6 +33,7 @@ function Index() {
         <Hero />
         <MisionVision />
         <Patrocinadores />
+        <Inscripcion />
         <StageGate
           id="gmat"
           label="GMAT"
