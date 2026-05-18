@@ -1,4 +1,4 @@
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, Instagram, Linkedin } from "lucide-react";
 import liaPhoto from "@/assets/team-lia.jpg";
 import juanPhoto from "@/assets/team-juan-camilo.jpg";
 
