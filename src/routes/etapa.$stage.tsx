@@ -149,7 +149,7 @@ function StagePage() {
             </div>
 
             {/* Sponsor */}
-            {content?.sponsor_logo_url && (
+            {content?.sponsor_enabled && content?.sponsor_logo_url && (
               <div className="mt-8 bg-white rounded-xl border border-[var(--ncc-steel)] p-6 flex items-center gap-6 flex-wrap">
                 <div className="flex-1 min-w-[180px]">
                   <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium">
