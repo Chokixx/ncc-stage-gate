@@ -75,7 +75,7 @@ function StagePage() {
     void supabase
       .from("stage_content")
       .select(
-        "intro, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_url, case_data_name",
+        "intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_url, case_data_name",
       )
       .eq("stage", stageId)
       .maybeSingle()
