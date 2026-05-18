@@ -886,12 +886,13 @@ function StagesAdmin({ password }: { password: string }) {
         <StageCard
           key={s.id}
           row={s}
-          onSave={async (intro, sponsor_name, sponsor_link) => {
+          onSave={async (intro, sponsor_enabled, sponsor_name, sponsor_link) => {
             await update({
               data: {
                 password,
                 stage: s.stage,
                 intro,
+                sponsor_enabled,
                 sponsor_name,
                 sponsor_link: sponsor_link || null,
               },
