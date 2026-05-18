@@ -1,4 +1,4 @@
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, Instagram, Linkedin } from "lucide-react";
 import liaPhoto from "@/assets/team-lia.jpg";
 import juanPhoto from "@/assets/team-juan-camilo.jpg";
 
@@ -87,13 +87,33 @@ export function Contacto() {
             </p>
             <h3 className="font-serif text-2xl md:text-3xl mt-1">NCC</h3>
           </div>
-          <a
-            href="mailto:ncc@uniandes.edu.co"
-            className="inline-flex items-center gap-3 rounded-md bg-white/10 hover:bg-white/20 transition-colors px-5 py-3 text-sm font-medium"
-          >
-            <Mail className="h-4 w-4" />
-            ncc@uniandes.edu.co
-          </a>
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="mailto:ncc@uniandes.edu.co"
+              className="inline-flex items-center gap-3 rounded-md bg-white/10 hover:bg-white/20 transition-colors px-5 py-3 text-sm font-medium"
+            >
+              <Mail className="h-4 w-4" />
+              ncc@uniandes.edu.co
+            </a>
+            <a
+              href="https://www.instagram.com/nationalcase/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram NCC"
+              className="inline-flex items-center justify-center h-11 w-11 rounded-md bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              <Instagram className="h-4 w-4" />
+            </a>
+            <a
+              href="https://www.linkedin.com/company/national-case/posts/?feedView=all"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn NCC"
+              className="inline-flex items-center justify-center h-11 w-11 rounded-md bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              <Linkedin className="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </div>
     </section>

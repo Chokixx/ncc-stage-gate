@@ -40,6 +40,7 @@ export const Route = createFileRoute("/etapa/$stage")({
 
 type StageContent = {
   intro: string;
+  sponsor_enabled: boolean;
   sponsor_name: string;
   sponsor_logo_url: string | null;
   sponsor_link: string | null;
@@ -74,7 +75,7 @@ function StagePage() {
     void supabase
       .from("stage_content")
       .select(
-        "intro, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_url, case_data_name",
+        "intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_url, case_data_name",
       )
       .eq("stage", stageId)
       .maybeSingle()
@@ -148,7 +149,7 @@ function StagePage() {
             </div>
 
             {/* Sponsor */}
-            {content?.sponsor_logo_url && (
+            {content?.sponsor_enabled && content?.sponsor_logo_url && (
               <div className="mt-8 bg-white rounded-xl border border-[var(--ncc-steel)] p-6 flex items-center gap-6 flex-wrap">
                 <div className="flex-1 min-w-[180px]">
                   <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium">

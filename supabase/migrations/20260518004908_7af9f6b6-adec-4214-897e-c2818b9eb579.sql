@@ -1,0 +1,1 @@
+ALTER TABLE public.stage_content ADD COLUMN IF NOT EXISTS sponsor_enabled boolean NOT NULL DEFAULT true;

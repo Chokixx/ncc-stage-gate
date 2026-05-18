@@ -836,6 +836,7 @@ type StageRow = {
   id: string;
   stage: "alpha" | "beta" | "delta";
   intro: string;
+  sponsor_enabled: boolean;
   sponsor_name: string;
   sponsor_logo_url: string | null;
   sponsor_link: string | null;
@@ -885,12 +886,13 @@ function StagesAdmin({ password }: { password: string }) {
         <StageCard
           key={s.id}
           row={s}
-          onSave={async (intro, sponsor_name, sponsor_link) => {
+          onSave={async (intro, sponsor_enabled, sponsor_name, sponsor_link) => {
             await update({
               data: {
                 password,
                 stage: s.stage,
                 intro,
+                sponsor_enabled,
                 sponsor_name,
                 sponsor_link: sponsor_link || null,
               },
@@ -934,23 +936,26 @@ function StageCard({
   onClear,
 }: {
   row: StageRow;
-  onSave: (intro: string, sponsorName: string, sponsorLink: string) => Promise<void>;
+  onSave: (intro: string, sponsorEnabled: boolean, sponsorName: string, sponsorLink: string) => Promise<void>;
   onUpload: (kind: FileKind, file: File) => Promise<void>;
   onClear: (kind: FileKind) => Promise<void>;
 }) {
   const [intro, setIntro] = useState(row.intro);
+  const [sponsorEnabled, setSponsorEnabled] = useState(row.sponsor_enabled);
   const [sponsorName, setSponsorName] = useState(row.sponsor_name);
   const [sponsorLink, setSponsorLink] = useState(row.sponsor_link ?? "");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     setIntro(row.intro);
+    setSponsorEnabled(row.sponsor_enabled);
     setSponsorName(row.sponsor_name);
     setSponsorLink(row.sponsor_link ?? "");
-  }, [row.id, row.intro, row.sponsor_name, row.sponsor_link]);
+  }, [row.id, row.intro, row.sponsor_enabled, row.sponsor_name, row.sponsor_link]);
 
   const dirty =
     intro !== row.intro ||
+    sponsorEnabled !== row.sponsor_enabled ||
     sponsorName !== row.sponsor_name ||
     (sponsorLink || "") !== (row.sponsor_link ?? "");
 
@@ -1006,9 +1011,25 @@ function StageCard({
       <div className="mt-6 grid md:grid-cols-2 gap-6">
         {/* Sponsor */}
         <div className="border border-[var(--ncc-steel)] rounded-lg p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium mb-3">
-            Patrocinador del caso
-          </p>
+          <div className="flex items-center justify-between mb-3 gap-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium">
+              Patrocinador del caso
+            </p>
+            <label className="inline-flex items-center gap-2 text-xs text-[var(--ncc-deep)] cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={sponsorEnabled}
+                onChange={(e) => setSponsorEnabled(e.target.checked)}
+                className="h-4 w-4 accent-[var(--ncc-deep)]"
+              />
+              {sponsorEnabled ? "Visible" : "Oculto"}
+            </label>
+          </div>
+          {!sponsorEnabled && (
+            <p className="text-xs text-[var(--muted-foreground)] mb-3 italic">
+              Esta etapa se mostrará sin sección de patrocinador.
+            </p>
+          )}
           <div className="aspect-[16/9] bg-[var(--ncc-cream)] rounded-md flex items-center justify-center overflow-hidden border border-[var(--ncc-steel)] mb-3">
             {row.sponsor_logo_url ? (
               <img
@@ -1090,7 +1111,7 @@ function StageCard({
         <button
           disabled={!dirty || busy}
           onClick={() =>
-            void wrap(() => onSave(intro, sponsorName, sponsorLink))
+            void wrap(() => onSave(intro, sponsorEnabled, sponsorName, sponsorLink))
           }
           className="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-[var(--ncc-deep)] text-white disabled:opacity-40"
         >
