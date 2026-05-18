@@ -74,6 +74,33 @@ export type Database = {
         }
         Relationships: []
       }
+      registrations: {
+        Row: {
+          contact_email: string
+          created_at: string
+          id: string
+          mode: string
+          participants: Json
+          proof_url: string | null
+        }
+        Insert: {
+          contact_email: string
+          created_at?: string
+          id?: string
+          mode: string
+          participants: Json
+          proof_url?: string | null
+        }
+        Update: {
+          contact_email?: string
+          created_at?: string
+          id?: string
+          mode?: string
+          participants?: Json
+          proof_url?: string | null
+        }
+        Relationships: []
+      }
       sponsors: {
         Row: {
           created_at: string
