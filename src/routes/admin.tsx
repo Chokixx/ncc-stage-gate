@@ -836,6 +836,7 @@ type StageRow = {
   id: string;
   stage: "alpha" | "beta" | "delta";
   intro: string;
+  sponsor_enabled: boolean;
   sponsor_name: string;
   sponsor_logo_url: string | null;
   sponsor_link: string | null;
