@@ -113,6 +113,7 @@ export type Database = {
           created_at: string
           id: string
           intro: string
+          sponsor_enabled: boolean
           sponsor_link: string | null
           sponsor_logo_url: string | null
           sponsor_name: string
@@ -127,6 +128,7 @@ export type Database = {
           created_at?: string
           id?: string
           intro?: string
+          sponsor_enabled?: boolean
           sponsor_link?: string | null
           sponsor_logo_url?: string | null
           sponsor_name?: string
@@ -141,6 +143,7 @@ export type Database = {
           created_at?: string
           id?: string
           intro?: string
+          sponsor_enabled?: boolean
           sponsor_link?: string | null
           sponsor_logo_url?: string | null
           sponsor_name?: string
