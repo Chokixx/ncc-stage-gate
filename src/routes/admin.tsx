@@ -936,23 +936,26 @@ function StageCard({
   onClear,
 }: {
   row: StageRow;
-  onSave: (intro: string, sponsorName: string, sponsorLink: string) => Promise<void>;
+  onSave: (intro: string, sponsorEnabled: boolean, sponsorName: string, sponsorLink: string) => Promise<void>;
   onUpload: (kind: FileKind, file: File) => Promise<void>;
   onClear: (kind: FileKind) => Promise<void>;
 }) {
   const [intro, setIntro] = useState(row.intro);
+  const [sponsorEnabled, setSponsorEnabled] = useState(row.sponsor_enabled);
   const [sponsorName, setSponsorName] = useState(row.sponsor_name);
   const [sponsorLink, setSponsorLink] = useState(row.sponsor_link ?? "");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     setIntro(row.intro);
+    setSponsorEnabled(row.sponsor_enabled);
     setSponsorName(row.sponsor_name);
     setSponsorLink(row.sponsor_link ?? "");
-  }, [row.id, row.intro, row.sponsor_name, row.sponsor_link]);
+  }, [row.id, row.intro, row.sponsor_enabled, row.sponsor_name, row.sponsor_link]);
 
   const dirty =
     intro !== row.intro ||
+    sponsorEnabled !== row.sponsor_enabled ||
     sponsorName !== row.sponsor_name ||
     (sponsorLink || "") !== (row.sponsor_link ?? "");
 
