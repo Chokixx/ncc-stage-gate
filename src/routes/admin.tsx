@@ -1011,9 +1011,25 @@ function StageCard({
       <div className="mt-6 grid md:grid-cols-2 gap-6">
         {/* Sponsor */}
         <div className="border border-[var(--ncc-steel)] rounded-lg p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium mb-3">
-            Patrocinador del caso
-          </p>
+          <div className="flex items-center justify-between mb-3 gap-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium">
+              Patrocinador del caso
+            </p>
+            <label className="inline-flex items-center gap-2 text-xs text-[var(--ncc-deep)] cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={sponsorEnabled}
+                onChange={(e) => setSponsorEnabled(e.target.checked)}
+                className="h-4 w-4 accent-[var(--ncc-deep)]"
+              />
+              {sponsorEnabled ? "Visible" : "Oculto"}
+            </label>
+          </div>
+          {!sponsorEnabled && (
+            <p className="text-xs text-[var(--muted-foreground)] mb-3 italic">
+              Esta etapa se mostrará sin sección de patrocinador.
+            </p>
+          )}
           <div className="aspect-[16/9] bg-[var(--ncc-cream)] rounded-md flex items-center justify-center overflow-hidden border border-[var(--ncc-steel)] mb-3">
             {row.sponsor_logo_url ? (
               <img
