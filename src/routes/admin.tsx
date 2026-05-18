@@ -1111,7 +1111,7 @@ function StageCard({
         <button
           disabled={!dirty || busy}
           onClick={() =>
-            void wrap(() => onSave(intro, sponsorName, sponsorLink))
+            void wrap(() => onSave(intro, sponsorEnabled, sponsorName, sponsorLink))
           }
           className="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-[var(--ncc-deep)] text-white disabled:opacity-40"
         >
