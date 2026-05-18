@@ -6,6 +6,7 @@ import { NCCLogo } from "./Logo";
 const links = [
   { label: "Inicio", target: "inicio" },
   { label: "Patrocinadores", target: "patrocinadores" },
+  { label: "Inscripción", target: "inscripcion" },
   { label: "GMAT", target: "gmat" },
   { label: "ALPHA", target: "alpha" },
   { label: "BETA", target: "beta" },
