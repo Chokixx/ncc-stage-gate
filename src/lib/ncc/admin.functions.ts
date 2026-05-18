@@ -252,6 +252,7 @@ export const adminUpdateStageContent = createServerFn({ method: "POST" })
         password: z.string().min(1).max(200),
         stage: StageId,
         intro: z.string().max(5000),
+        sponsor_enabled: z.boolean(),
         sponsor_name: z.string().max(200),
         sponsor_link: z.string().url().max(2000).nullable(),
       })
@@ -263,6 +264,7 @@ export const adminUpdateStageContent = createServerFn({ method: "POST" })
       .from("stage_content")
       .update({
         intro: data.intro,
+        sponsor_enabled: data.sponsor_enabled,
         sponsor_name: data.sponsor_name,
         sponsor_link: data.sponsor_link,
       })
