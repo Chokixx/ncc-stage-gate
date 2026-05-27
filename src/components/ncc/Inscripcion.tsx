@@ -22,7 +22,7 @@ const emptyParticipant = (): Participant => ({
   email: "",
 });
 
-const NEQUI_NUMBER = "3128737409";
+const BREB_KEY = "3128737409";
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -99,7 +99,7 @@ export function Inscripcion() {
 
   const copyNumber = async () => {
     try {
-      await navigator.clipboard.writeText(NEQUI_NUMBER);
+      await navigator.clipboard.writeText(BREB_KEY);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -410,39 +410,31 @@ export function Inscripcion() {
               </div>
             </div>
 
-            {/* Nequi payment */}
-            <div className="rounded-xl p-6 text-white shadow-[0_8px_30px_rgba(123,45,139,0.25)]"
-              style={{
-                background:
-                  "linear-gradient(135deg, #7B2D8B 0%, #4A1A6B 100%)",
-              }}
-            >
+            {/* Bre-B payment */}
+            <div className="rounded-xl border border-[var(--ncc-steel)] bg-white p-6">
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                  <p className="text-xs uppercase tracking-widest opacity-80">
+                  <p className="text-xs uppercase tracking-widest text-[var(--ncc-deep)]/60">
                     Pago
                   </p>
-                  <h4 className="font-serif text-2xl">
-                    Realiza tu pago por Nequi
+                  <h4 className="font-serif text-2xl text-[var(--ncc-deep)]">
+                    Paga por Bre-B
                   </h4>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center font-bold text-lg">
-                  N
-                </div>
               </div>
-              <div className="mt-5 bg-white/10 backdrop-blur rounded-lg p-4 flex items-center justify-between gap-3">
+              <div className="mt-5 rounded-lg bg-[var(--ncc-mint)] p-4 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide opacity-75">
-                    Número Nequi
+                  <p className="text-[11px] uppercase tracking-wide text-[var(--ncc-deep)]/70">
+                    Llave Bre-B
                   </p>
-                  <p className="text-2xl font-semibold tracking-wider">
-                    {NEQUI_NUMBER}
+                  <p className="text-2xl font-semibold tracking-wider text-[var(--ncc-deep)]">
+                    {BREB_KEY}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={copyNumber}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-white text-[#7B2D8B] px-3 py-2 text-xs font-medium hover:bg-white/90 transition"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-[var(--ncc-deep)] text-white px-3 py-2 text-xs font-medium hover:opacity-90 transition"
                 >
                   {copied ? (
                     <>
@@ -455,15 +447,7 @@ export function Inscripcion() {
                   )}
                 </button>
               </div>
-              <a
-                href="https://www.nequi.com.co/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-md bg-white text-[#7B2D8B] px-5 py-2.5 text-sm font-semibold hover:bg-white/90 transition"
-              >
-                Pagar con Nequi
-              </a>
-              <p className="text-xs opacity-80 mt-3">
+              <p className="text-xs text-[var(--muted-foreground)] mt-3">
                 Una vez realizado el pago, sube el comprobante en el campo de
                 foto superior.
               </p>
