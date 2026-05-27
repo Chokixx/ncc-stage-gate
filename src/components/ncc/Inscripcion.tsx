@@ -120,6 +120,12 @@ export function Inscripcion() {
   };
 
   const validate = (): string | null => {
+    if (mode === "team") {
+      if (!teamName.trim() || teamName.trim().length < 2)
+        return "El nombre del equipo es obligatorio.";
+      if (participants.length !== 4)
+        return "El equipo debe tener exactamente 4 integrantes.";
+    }
     for (const [i, p] of participants.entries()) {
       if (!p.fullName.trim() || p.fullName.trim().length < 2)
         return `Falta el nombre del integrante ${i + 1}.`;
@@ -147,6 +153,7 @@ export function Inscripcion() {
       await submit({
         data: {
           mode,
+          teamName: mode === "team" ? teamName.trim() : null,
           participants: participants.map((p) => ({
             fullName: p.fullName.trim(),
             cedula: p.cedula.trim(),
@@ -173,6 +180,7 @@ export function Inscripcion() {
 
   const resetAll = () => {
     setMode(null);
+    setTeamName("");
     setParticipants([emptyParticipant()]);
     setProofFile(null);
     setProofPreview(null);
