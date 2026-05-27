@@ -82,6 +82,7 @@ export type Database = {
           mode: string
           participants: Json
           proof_url: string | null
+          team_name: string | null
         }
         Insert: {
           contact_email: string
@@ -90,6 +91,7 @@ export type Database = {
           mode: string
           participants: Json
           proof_url?: string | null
+          team_name?: string | null
         }
         Update: {
           contact_email?: string
@@ -98,6 +100,7 @@ export type Database = {
           mode?: string
           participants?: Json
           proof_url?: string | null
+          team_name?: string | null
         }
         Relationships: []
       }
