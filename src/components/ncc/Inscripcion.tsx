@@ -292,6 +292,25 @@ export function Inscripcion() {
               Cambiar selección
             </button>
 
+            {mode === "team" && (
+              <div
+                className="bg-white rounded-xl border border-[var(--ncc-steel)] p-5 md:p-6 animate-fade-in"
+                style={{ borderTop: "3px solid var(--ncc-deep)" }}
+              >
+                <label className="text-xs font-medium text-[var(--ncc-deep)]/70">
+                  Nombre del equipo
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  placeholder="Ej. Los Estrategas"
+                  className="mt-1 w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                />
+              </div>
+            )}
+
             <div className="space-y-4">
               {participants.map((p, idx) => (
                 <div
