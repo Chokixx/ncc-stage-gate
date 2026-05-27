@@ -79,14 +79,6 @@ export function Inscripcion() {
     );
   };
 
-  const addParticipant = () => {
-    setParticipants((prev) =>
-      prev.length < 4 ? [...prev, emptyParticipant()] : prev,
-    );
-  };
-  const removeParticipant = (idx: number) => {
-    setParticipants((prev) => prev.filter((_, i) => i !== idx));
-  };
 
   const handleFile = (file: File | null) => {
     if (!file) return;
