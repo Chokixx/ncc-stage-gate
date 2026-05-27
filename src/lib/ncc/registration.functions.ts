@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { appendRegistrationRows } from "./registration-sheets.server";
 
 const ParticipantSchema = z.object({
   fullName: z.string().trim().min(2).max(150),
@@ -13,6 +14,7 @@ export const submitRegistration = createServerFn({ method: "POST" })
     z
       .object({
         mode: z.enum(["solo", "team"]),
+        teamName: z.string().trim().max(120).optional().nullable(),
         participants: z.array(ParticipantSchema).min(1).max(4),
         proof: z
           .object({
@@ -23,6 +25,24 @@ export const submitRegistration = createServerFn({ method: "POST" })
             base64: z.string().min(1).max(8_000_000),
           })
           .nullable(),
+      })
+      .superRefine((val, ctx) => {
+        if (val.mode === "team") {
+          if (val.participants.length !== 4) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "El equipo debe tener exactamente 4 integrantes.",
+              path: ["participants"],
+            });
+          }
+          if (!val.teamName || val.teamName.trim().length < 2) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "El nombre del equipo es obligatorio.",
+              path: ["teamName"],
+            });
+          }
+        }
       })
       .parse(i),
   )
@@ -47,12 +67,31 @@ export const submitRegistration = createServerFn({ method: "POST" })
       proofUrl = pub.publicUrl;
     }
 
+    const teamName =
+      data.mode === "team"
+        ? (data.teamName ?? "").trim()
+        : `Individual — ${data.participants[0].fullName}`;
+
     const { error } = await supabaseAdmin.from("registrations").insert({
       mode: data.mode,
+      team_name: teamName,
       participants: data.participants,
       proof_url: proofUrl,
       contact_email: data.participants[0].email,
     });
     if (error) throw new Error(error.message);
+
+    // Sheets no debe bloquear la inscripción si falla
+    try {
+      await appendRegistrationRows({
+        teamName,
+        mode: data.mode,
+        participants: data.participants,
+        proofUrl,
+      });
+    } catch (e) {
+      console.error("Sheets append falló:", e);
+    }
+
     return { ok: true };
   });
