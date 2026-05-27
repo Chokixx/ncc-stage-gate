@@ -369,15 +369,10 @@ export function Inscripcion() {
                 </div>
               ))}
 
-              {mode === "team" && participants.length < 4 && (
-                <button
-                  type="button"
-                  onClick={addParticipant}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-dashed border-[var(--ncc-deep)]/40 text-[var(--ncc-deep)] py-3 text-sm hover:bg-[var(--ncc-mint)] transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  Agregar integrante ({participants.length}/4)
-                </button>
+              {mode === "team" && (
+                <p className="text-xs text-[var(--muted-foreground)] text-center">
+                  Los equipos deben tener <strong>exactamente 4 integrantes</strong> para poder inscribirse.
+                </p>
               )}
             </div>
 
