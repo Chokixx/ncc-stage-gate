@@ -10,6 +10,7 @@ import {
   Check,
   CheckCircle2,
   ArrowLeft,
+  ArrowRight,
   Loader2,
 } from "lucide-react";
 import { submitRegistration } from "@/lib/ncc/registration.functions";
