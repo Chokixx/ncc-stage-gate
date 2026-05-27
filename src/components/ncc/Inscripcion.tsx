@@ -301,7 +301,7 @@ export function Inscripcion() {
                   className="bg-white rounded-xl border border-[var(--ncc-steel)] p-5 md:p-6 animate-fade-in"
                   style={{ borderTop: "3px solid var(--ncc-deep)" }}
                 >
-                  <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4">
                     <h4 className="font-medium text-[var(--ncc-deep)]">
                       Integrante {idx + 1}
                       {idx === 0 && (
@@ -310,16 +310,6 @@ export function Inscripcion() {
                         </span>
                       )}
                     </h4>
-                    {mode === "team" && idx > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => removeParticipant(idx)}
-                        className="p-1.5 rounded-md text-[var(--ncc-deep)]/60 hover:text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)]"
-                        aria-label="Eliminar integrante"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
                   </div>
                   <div className="grid md:grid-cols-2 gap-3">
                     <div className="md:col-span-2">
