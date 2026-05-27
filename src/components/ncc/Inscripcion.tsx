@@ -22,7 +22,7 @@ const emptyParticipant = (): Participant => ({
   email: "",
 });
 
-const NEQUI_NUMBER = "3128737409";
+const BREB_KEY = "3128737409";
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -99,7 +99,7 @@ export function Inscripcion() {
 
   const copyNumber = async () => {
     try {
-      await navigator.clipboard.writeText(NEQUI_NUMBER);
+      await navigator.clipboard.writeText(BREB_KEY);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
