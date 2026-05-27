@@ -175,12 +175,20 @@ export function Inscripcion() {
       className="w-full"
       style={{ backgroundColor: "var(--ncc-cream)" }}
     >
-      <div className="max-w-4xl mx-auto px-6 py-20 md:py-28">
+      <div className="max-w-xl mx-auto px-6 py-20 md:py-28">
         <div className="text-center mb-10">
-          <h2 className="font-serif text-4xl md:text-5xl text-[var(--ncc-deep)]">
-            Inscripción — NCC 2026
+          <span className="inline-block px-3 py-1 mb-4 rounded-full bg-[var(--ncc-mint)] text-[var(--ncc-deep)] text-[10px] font-bold tracking-widest uppercase border border-[var(--ncc-deep)]/10">
+            Registro abierto
+          </span>
+          <h2 className="font-serif text-4xl md:text-5xl leading-tight text-[var(--ncc-deep)]">
+            Inscripción <span className="opacity-40">—</span>
+            <br />
+            <span className="relative inline-block italic">
+              NCC 2026
+              <span className="absolute -bottom-1 left-0 w-full h-1 rounded-full bg-[var(--ncc-mint)]" />
+            </span>
           </h2>
-          <p className="mt-3 text-[var(--muted-foreground)]">
+          <p className="mt-4 text-sm font-medium tracking-wide text-[var(--ncc-deep)]/70">
             Completa el formulario para reservar tu cupo
           </p>
         </div>
@@ -218,37 +226,51 @@ export function Inscripcion() {
             </button>
           </div>
         ) : mode === null ? (
-          <div className="grid sm:grid-cols-2 gap-4 animate-fade-in">
+          <div className="space-y-4 animate-fade-in">
+            {/* Solo — dark filled */}
             <button
               type="button"
               onClick={() => chooseMode("solo")}
-              className="group bg-white rounded-xl border border-[var(--ncc-steel)] p-8 text-left hover:border-[var(--ncc-deep)] hover:shadow-[0_4px_24px_rgba(18,91,80,0.10)] transition-all"
+              className="group relative w-full overflow-hidden rounded-2xl bg-[var(--ncc-deep)] p-6 text-left shadow-xl shadow-[rgba(10,61,46,0.18)] transition-all hover:scale-[1.02] active:scale-95"
             >
-              <div className="h-12 w-12 rounded-full bg-[var(--ncc-mint)] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <User className="h-6 w-6 text-[var(--ncc-deep)]" />
+              <div className="pointer-events-none absolute -top-16 -right-16 h-32 w-32 rounded-full bg-white/5 blur-2xl" />
+              <div className="relative z-10">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--ncc-mint)] shadow-inner">
+                  <User className="h-6 w-6 text-[var(--ncc-deep)]" />
+                </div>
+                <h3 className="font-serif text-2xl text-white">Estoy solo</h3>
+                <p className="mt-1 text-sm text-[var(--ncc-mint)]/80">
+                  Busco equipo para la competencia
+                </p>
               </div>
-              <h3 className="font-serif text-2xl text-[var(--ncc-deep)]">
-                Estoy solo
-              </h3>
-              <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                Busco equipo para la competencia
-              </p>
+              <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-mint)] opacity-0 transition-opacity group-hover:opacity-100" />
             </button>
+
+            {/* Team — light outlined */}
             <button
               type="button"
               onClick={() => chooseMode("team")}
-              className="group bg-white rounded-xl border border-[var(--ncc-steel)] p-8 text-left hover:border-[var(--ncc-deep)] hover:shadow-[0_4px_24px_rgba(18,91,80,0.10)] transition-all"
+              className="group relative w-full overflow-hidden rounded-2xl border-2 border-[var(--ncc-deep)]/10 bg-white p-6 text-left shadow-sm transition-all hover:border-[var(--ncc-mint)] hover:bg-[var(--ncc-mint)]/10 active:scale-95"
             >
-              <div className="h-12 w-12 rounded-full bg-[var(--ncc-mint)] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Users className="h-6 w-6 text-[var(--ncc-deep)]" />
+              <div className="relative z-10">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--ncc-mint)] bg-[var(--ncc-mint)]/30">
+                  <Users className="h-6 w-6 text-[var(--ncc-deep)]" />
+                </div>
+                <h3 className="font-serif text-2xl text-[var(--ncc-deep)]">
+                  Ya tengo equipo
+                </h3>
+                <p className="mt-1 text-sm text-[var(--ncc-deep)]/60">
+                  Inscríbelo con hasta 4 integrantes
+                </p>
               </div>
-              <h3 className="font-serif text-2xl text-[var(--ncc-deep)]">
-                Ya tengo equipo
-              </h3>
-              <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                Inscríbelo con hasta 4 integrantes
-              </p>
+              <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-deep)] opacity-20 transition-opacity group-hover:opacity-100" />
             </button>
+
+            <div className="mt-10 flex justify-center gap-2">
+              <span className="h-1 w-1 rounded-full bg-[var(--ncc-deep)]/20" />
+              <span className="h-1 w-1 rounded-full bg-[var(--ncc-deep)]/40" />
+              <span className="h-1 w-1 rounded-full bg-[var(--ncc-deep)]/20" />
+            </div>
           </div>
         ) : (
           <form onSubmit={onSubmit} className="animate-fade-in space-y-6">
