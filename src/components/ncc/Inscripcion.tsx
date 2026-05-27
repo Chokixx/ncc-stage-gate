@@ -41,6 +41,7 @@ export function Inscripcion() {
   const submit = useServerFn(submitRegistration);
 
   const [mode, setMode] = useState<"solo" | "team" | null>(null);
+  const [teamName, setTeamName] = useState("");
   const [participants, setParticipants] = useState<Participant[]>([
     emptyParticipant(),
   ]);
@@ -55,7 +56,17 @@ export function Inscripcion() {
 
   const chooseMode = (m: "solo" | "team") => {
     setMode(m);
-    setParticipants([emptyParticipant()]);
+    setTeamName("");
+    setParticipants(
+      m === "team"
+        ? [
+            emptyParticipant(),
+            emptyParticipant(),
+            emptyParticipant(),
+            emptyParticipant(),
+          ]
+        : [emptyParticipant()],
+    );
   };
 
   const updateField = (
