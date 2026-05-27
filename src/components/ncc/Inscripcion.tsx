@@ -3,8 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   User,
   Users,
-  Plus,
-  X,
   Upload,
   Copy,
   Check,
@@ -41,6 +39,7 @@ export function Inscripcion() {
   const submit = useServerFn(submitRegistration);
 
   const [mode, setMode] = useState<"solo" | "team" | null>(null);
+  const [teamName, setTeamName] = useState("");
   const [participants, setParticipants] = useState<Participant[]>([
     emptyParticipant(),
   ]);
@@ -55,7 +54,17 @@ export function Inscripcion() {
 
   const chooseMode = (m: "solo" | "team") => {
     setMode(m);
-    setParticipants([emptyParticipant()]);
+    setTeamName("");
+    setParticipants(
+      m === "team"
+        ? [
+            emptyParticipant(),
+            emptyParticipant(),
+            emptyParticipant(),
+            emptyParticipant(),
+          ]
+        : [emptyParticipant()],
+    );
   };
 
   const updateField = (
@@ -68,14 +77,6 @@ export function Inscripcion() {
     );
   };
 
-  const addParticipant = () => {
-    setParticipants((prev) =>
-      prev.length < 4 ? [...prev, emptyParticipant()] : prev,
-    );
-  };
-  const removeParticipant = (idx: number) => {
-    setParticipants((prev) => prev.filter((_, i) => i !== idx));
-  };
 
   const handleFile = (file: File | null) => {
     if (!file) return;
@@ -109,6 +110,12 @@ export function Inscripcion() {
   };
 
   const validate = (): string | null => {
+    if (mode === "team") {
+      if (!teamName.trim() || teamName.trim().length < 2)
+        return "El nombre del equipo es obligatorio.";
+      if (participants.length !== 4)
+        return "El equipo debe tener exactamente 4 integrantes.";
+    }
     for (const [i, p] of participants.entries()) {
       if (!p.fullName.trim() || p.fullName.trim().length < 2)
         return `Falta el nombre del integrante ${i + 1}.`;
@@ -136,6 +143,7 @@ export function Inscripcion() {
       await submit({
         data: {
           mode,
+          teamName: mode === "team" ? teamName.trim() : null,
           participants: participants.map((p) => ({
             fullName: p.fullName.trim(),
             cedula: p.cedula.trim(),
@@ -162,6 +170,7 @@ export function Inscripcion() {
 
   const resetAll = () => {
     setMode(null);
+    setTeamName("");
     setParticipants([emptyParticipant()]);
     setProofFile(null);
     setProofPreview(null);
@@ -283,6 +292,25 @@ export function Inscripcion() {
               Cambiar selección
             </button>
 
+            {mode === "team" && (
+              <div
+                className="bg-white rounded-xl border border-[var(--ncc-steel)] p-5 md:p-6 animate-fade-in"
+                style={{ borderTop: "3px solid var(--ncc-deep)" }}
+              >
+                <label className="text-xs font-medium text-[var(--ncc-deep)]/70">
+                  Nombre del equipo
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  placeholder="Ej. Los Estrategas"
+                  className="mt-1 w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                />
+              </div>
+            )}
+
             <div className="space-y-4">
               {participants.map((p, idx) => (
                 <div
@@ -290,7 +318,7 @@ export function Inscripcion() {
                   className="bg-white rounded-xl border border-[var(--ncc-steel)] p-5 md:p-6 animate-fade-in"
                   style={{ borderTop: "3px solid var(--ncc-deep)" }}
                 >
-                  <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4">
                     <h4 className="font-medium text-[var(--ncc-deep)]">
                       Integrante {idx + 1}
                       {idx === 0 && (
@@ -299,16 +327,6 @@ export function Inscripcion() {
                         </span>
                       )}
                     </h4>
-                    {mode === "team" && idx > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => removeParticipant(idx)}
-                        className="p-1.5 rounded-md text-[var(--ncc-deep)]/60 hover:text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)]"
-                        aria-label="Eliminar integrante"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
                   </div>
                   <div className="grid md:grid-cols-2 gap-3">
                     <div className="md:col-span-2">
@@ -368,15 +386,10 @@ export function Inscripcion() {
                 </div>
               ))}
 
-              {mode === "team" && participants.length < 4 && (
-                <button
-                  type="button"
-                  onClick={addParticipant}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-dashed border-[var(--ncc-deep)]/40 text-[var(--ncc-deep)] py-3 text-sm hover:bg-[var(--ncc-mint)] transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  Agregar integrante ({participants.length}/4)
-                </button>
+              {mode === "team" && (
+                <p className="text-xs text-[var(--muted-foreground)] text-center">
+                  Los equipos deben tener <strong>exactamente 4 integrantes</strong> para poder inscribirse.
+                </p>
               )}
             </div>
 
