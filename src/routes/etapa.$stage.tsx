@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Download, FileText, ExternalLink } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
-import { supabase } from "@/integrations/supabase/client";
+import { getStageContent } from "@/lib/ncc/stage-content.functions";
 
 type StageId = "alpha" | "beta" | "delta";
 
@@ -26,6 +26,12 @@ const STAGE_CONFIG: Record<
     accent: "#9ebcac",
     tagline: "Etapa final — Estrategia & presentación.",
   },
+};
+
+const STAGE_PASSWORDS: Record<StageId, string | undefined> = {
+  alpha: import.meta.env.VITE_PASS_ALPHA,
+  beta: import.meta.env.VITE_PASS_BETA,
+  delta: import.meta.env.VITE_PASS_DELTA,
 };
 
 export const Route = createFileRoute("/etapa/$stage")({
@@ -72,14 +78,23 @@ function StagePage() {
       return;
     }
     setReady(true);
-    void supabase
-      .from("stage_content")
-      .select(
-        "intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_url, case_data_name",
-      )
-      .eq("stage", stageId)
-      .maybeSingle()
-      .then(({ data }) => setContent((data as StageContent) ?? null));
+    void getStageContent({
+      data: { stage: stageId, password: STAGE_PASSWORDS[stageId] ?? null },
+    }).then((res) => {
+      const c = res.content as Partial<StageContent> | null;
+      if (!c) return setContent(null);
+      setContent({
+        intro: c.intro ?? "",
+        sponsor_enabled: c.sponsor_enabled ?? false,
+        sponsor_name: c.sponsor_name ?? "",
+        sponsor_logo_url: c.sponsor_logo_url ?? null,
+        sponsor_link: c.sponsor_link ?? null,
+        case_pdf_url: c.case_pdf_url ?? null,
+        case_pdf_name: c.case_pdf_name ?? null,
+        case_data_url: c.case_data_url ?? null,
+        case_data_name: c.case_data_name ?? null,
+      });
+    });
   }, [stageId, config, navigate]);
 
   if (!ready || !config) {
