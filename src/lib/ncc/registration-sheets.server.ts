@@ -24,6 +24,10 @@ const HEADERS = [
   "Nombre completo",
   "Cédula",
   "Correo",
+  "Celular",
+  "Universidad",
+  "Pregrado",
+  "Semestre",
   "Comprobante",
   "Fecha",
 ];
@@ -55,6 +59,10 @@ export type SheetParticipant = {
   fullName: string;
   cedula: string;
   email: string;
+  phone: string;
+  university: string;
+  program: string;
+  semester: string;
 };
 
 export async function appendRegistrationRows(input: {
@@ -73,11 +81,15 @@ export async function appendRegistrationRows(input: {
     p.fullName,
     p.cedula,
     p.email,
+    p.phone,
+    p.university,
+    p.program,
+    p.semester,
     input.proofUrl ?? "",
     now,
   ]);
 
-  const range = `${TAB}!A:H`;
+  const range = `${TAB}!A:L`;
   const url = `${GATEWAY_URL}/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
   const res = await fetch(url, {
     method: "POST",

@@ -13,12 +13,24 @@ import {
 } from "lucide-react";
 import { submitRegistration } from "@/lib/ncc/registration.functions";
 
-type Participant = { fullName: string; cedula: string; email: string };
+type Participant = {
+  fullName: string;
+  cedula: string;
+  email: string;
+  phone: string;
+  university: string;
+  program: string;
+  semester: string;
+};
 
 const emptyParticipant = (): Participant => ({
   fullName: "",
   cedula: "",
   email: "",
+  phone: "",
+  university: "",
+  program: "",
+  semester: "",
 });
 
 const BREB_KEY = "3128737409";
@@ -123,6 +135,14 @@ export function Inscripcion() {
         return `Cédula inválida del integrante ${i + 1} (solo números).`;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email.trim()))
         return `Correo inválido del integrante ${i + 1}.`;
+      if (!/^[0-9]{7,15}$/.test(p.phone.trim()))
+        return `Celular inválido del integrante ${i + 1} (solo números).`;
+      if (!p.university.trim() || p.university.trim().length < 2)
+        return `Falta la universidad del integrante ${i + 1}.`;
+      if (!p.program.trim() || p.program.trim().length < 2)
+        return `Falta el pregrado del integrante ${i + 1}.`;
+      if (!p.semester.trim())
+        return `Falta el semestre del integrante ${i + 1}.`;
     }
     if (!proofFile) return "Sube una foto del equipo o el comprobante de pago.";
     return null;
@@ -148,6 +168,10 @@ export function Inscripcion() {
             fullName: p.fullName.trim(),
             cedula: p.cedula.trim(),
             email: p.email.trim(),
+            phone: p.phone.trim(),
+            university: p.university.trim(),
+            program: p.program.trim(),
+            semester: p.semester.trim(),
           })),
           proof: proofFile && base64
             ? {
@@ -381,6 +405,78 @@ export function Inscripcion() {
                           Aquí recibirás toda la información del evento
                         </p>
                       )}
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-[var(--ncc-deep)]/70">
+                        Número celular
+                      </label>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        required
+                        value={p.phone}
+                        onChange={(e) =>
+                          updateField(
+                            idx,
+                            "phone",
+                            e.target.value.replace(/[^0-9]/g, ""),
+                          )
+                        }
+                        placeholder="3001234567"
+                        className="mt-1 w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-xs font-medium text-[var(--ncc-deep)]/70">
+                        Universidad
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={p.university}
+                        onChange={(e) =>
+                          updateField(idx, "university", e.target.value)
+                        }
+                        placeholder="Ej. Universidad de los Andes"
+                        className="mt-1 w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-[var(--ncc-deep)]/70">
+                        Pregrado
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={p.program}
+                        onChange={(e) =>
+                          updateField(idx, "program", e.target.value)
+                        }
+                        placeholder="Ej. Administración"
+                        className="mt-1 w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-[var(--ncc-deep)]/70">
+                        Semestre
+                      </label>
+                      <select
+                        required
+                        value={p.semester}
+                        onChange={(e) =>
+                          updateField(idx, "semester", e.target.value)
+                        }
+                        className="mt-1 w-full rounded-md border border-[var(--ncc-steel)] bg-white px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                      >
+                        <option value="">Selecciona…</option>
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                          <option key={n} value={String(n)}>
+                            {n}º semestre
+                          </option>
+                        ))}
+                        <option value="Egresado">Egresado</option>
+                      </select>
                     </div>
                   </div>
                 </div>
