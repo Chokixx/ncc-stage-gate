@@ -7,6 +7,10 @@ const ParticipantSchema = z.object({
   fullName: z.string().trim().min(2).max(150),
   cedula: z.string().trim().regex(/^[0-9]{4,15}$/, "Cédula inválida"),
   email: z.string().trim().email().max(200),
+  phone: z.string().trim().regex(/^[0-9]{7,15}$/, "Celular inválido"),
+  university: z.string().trim().min(2).max(150),
+  program: z.string().trim().min(2).max(150),
+  semester: z.string().trim().min(1).max(20),
 });
 
 export const submitRegistration = createServerFn({ method: "POST" })
