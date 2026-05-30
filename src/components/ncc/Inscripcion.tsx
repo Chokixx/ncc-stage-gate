@@ -162,8 +162,8 @@ export function Inscripcion() {
       const base64 = proofFile ? await fileToBase64(proofFile) : null;
       await submit({
         data: {
-          mode,
-          teamName: mode === "team" ? teamName.trim() : null,
+        mode,
+          teamName: teamName.trim() || null,
           participants: participants.map((p) => ({
             fullName: p.fullName.trim(),
             cedula: p.cedula.trim(),
