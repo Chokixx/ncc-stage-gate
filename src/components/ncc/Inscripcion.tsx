@@ -162,8 +162,8 @@ export function Inscripcion() {
       const base64 = proofFile ? await fileToBase64(proofFile) : null;
       await submit({
         data: {
-          mode,
-          teamName: mode === "team" ? teamName.trim() : null,
+        mode,
+          teamName: teamName.trim() || null,
           participants: participants.map((p) => ({
             fullName: p.fullName.trim(),
             cedula: p.cedula.trim(),
@@ -316,24 +316,22 @@ export function Inscripcion() {
               Cambiar selección
             </button>
 
-            {mode === "team" && (
-              <div
-                className="bg-white rounded-xl border border-[var(--ncc-steel)] p-5 md:p-6 animate-fade-in"
-                style={{ borderTop: "3px solid var(--ncc-deep)" }}
-              >
-                <label className="text-xs font-medium text-[var(--ncc-deep)]/70">
-                  Nombre del equipo
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
-                  placeholder="Ej. Los Estrategas"
-                  className="mt-1 w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
-                />
-              </div>
-            )}
+            <div
+              className="bg-white rounded-xl border border-[var(--ncc-steel)] p-5 md:p-6 animate-fade-in"
+              style={{ borderTop: "3px solid var(--ncc-deep)" }}
+            >
+              <label className="text-xs font-medium text-[var(--ncc-deep)]/70">
+                {mode === "team" ? "Nombre del equipo" : "Nombre de tu equipo / participación"}
+              </label>
+              <input
+                type="text"
+                required={mode === "team"}
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                placeholder={mode === "team" ? "Ej. Los Estrategas" : "Opcional — ej. Los Estrategas"}
+                className="mt-1 w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
+              />
+            </div>
 
             <div className="space-y-4">
               {participants.map((p, idx) => (
