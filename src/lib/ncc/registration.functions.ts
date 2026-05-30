@@ -74,7 +74,7 @@ export const submitRegistration = createServerFn({ method: "POST" })
     const teamName =
       data.mode === "team"
         ? (data.teamName ?? "").trim()
-        : `Individual — ${data.participants[0].fullName}`;
+        : (data.teamName ?? "").trim() || `Individual — ${data.participants[0].fullName}`;
 
     const { error } = await supabaseAdmin.from("registrations").insert({
       mode: data.mode,
