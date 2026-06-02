@@ -52,6 +52,7 @@ export type Database = {
       }
       gmat_teams: {
         Row: {
+          access_token: string
           created_at: string
           id: string
           name: string
@@ -59,6 +60,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_token?: string
           created_at?: string
           id?: string
           name: string
@@ -66,6 +68,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_token?: string
           created_at?: string
           id?: string
           name?: string
