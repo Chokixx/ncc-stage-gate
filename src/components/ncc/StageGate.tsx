@@ -1,13 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { Lock, ArrowRight } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import { verifyStagePassword } from "@/lib/ncc/stage-content.functions";
 
 type Props = {
   id: "gmat" | "alpha" | "beta" | "delta";
   label: string;
   labelColor: string;
   borderAccent: string;
-  password: string;
   iconUrl?: string;
 };
 
@@ -16,14 +16,15 @@ export function StageGate({
   label,
   labelColor,
   borderAccent,
-  password,
   iconUrl,
 }: Props) {
   const navigate = useNavigate();
   const storageKey = `ncc_${id}_unlocked`;
+  const passwordKey = `ncc_${id}_password`;
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const [animating, setAnimating] = useState(false);
+  const [checking, setChecking] = useState(false);
 
   const goToStage = () => {
     if (id === "gmat") {
@@ -33,14 +34,29 @@ export function StageGate({
     }
   };
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (value === password && password) {
-      setAnimating(true);
-      localStorage.setItem(storageKey, "true");
-      setTimeout(goToStage, 350);
-    } else {
+    if (!value) {
       setError(true);
+      return;
+    }
+    setChecking(true);
+    try {
+      const res = await verifyStagePassword({
+        data: { stage: id, password: value },
+      });
+      if (res.ok) {
+        setAnimating(true);
+        localStorage.setItem(storageKey, "true");
+        localStorage.setItem(passwordKey, value);
+        setTimeout(goToStage, 350);
+      } else {
+        setError(true);
+      }
+    } catch {
+      setError(true);
+    } finally {
+      setChecking(false);
     }
   };
 
@@ -100,9 +116,10 @@ export function StageGate({
             )}
             <button
               type="submit"
-              className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-[var(--ncc-deep)] text-white px-4 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"
+              disabled={checking}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-[var(--ncc-deep)] text-white px-4 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-60"
             >
-              Acceder
+              {checking ? "Verificando…" : "Acceder"}
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>

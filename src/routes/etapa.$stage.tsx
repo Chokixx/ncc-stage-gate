@@ -28,11 +28,6 @@ const STAGE_CONFIG: Record<
   },
 };
 
-const STAGE_PASSWORDS: Record<StageId, string | undefined> = {
-  alpha: import.meta.env.VITE_PASS_ALPHA,
-  beta: import.meta.env.VITE_PASS_BETA,
-  delta: import.meta.env.VITE_PASS_DELTA,
-};
 
 export const Route = createFileRoute("/etapa/$stage")({
   component: StagePage,
@@ -78,8 +73,12 @@ function StagePage() {
       return;
     }
     setReady(true);
+    const storedPassword =
+      typeof window !== "undefined"
+        ? localStorage.getItem(`ncc_${stageId}_password`)
+        : null;
     void getStageContent({
-      data: { stage: stageId, password: STAGE_PASSWORDS[stageId] ?? null },
+      data: { stage: stageId, password: storedPassword },
     }).then((res) => {
       const c = res.content as Partial<StageContent> | null;
       if (!c) return setContent(null);
