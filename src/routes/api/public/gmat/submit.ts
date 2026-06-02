@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { getTeamsFromDb } from "@/lib/ncc/teams.server";
+
 import { GMAT_QUESTIONS, GMAT_QUIZ_SIZE } from "@/lib/ncc/gmat-questions";
 import { GMAT_CORRECT_ANSWERS } from "@/lib/ncc/gmat-answers.server";
 
