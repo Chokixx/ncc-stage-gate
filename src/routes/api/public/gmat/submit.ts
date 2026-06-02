@@ -74,19 +74,6 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             if (answers[idx] === GMAT_CORRECT_ANSWERS[qid]) score += 1;
           });
 
-          const supabaseUrl =
-            process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-          const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-          if (!supabaseUrl || !serviceKey) {
-            return Response.json(
-              { error: "Backend no configurado" },
-              { status: 500 },
-            );
-          }
-
-          const admin = createClient(supabaseUrl, serviceKey, {
-            auth: { persistSession: false, autoRefreshToken: false },
-          });
 
           // Bloquear reintentos
           const { data: existing } = await admin
