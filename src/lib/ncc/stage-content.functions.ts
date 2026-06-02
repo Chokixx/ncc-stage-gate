@@ -5,12 +5,18 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 const STAGE_VALUES = ["gmat", "alpha", "beta", "delta"] as const;
 type Stage = (typeof STAGE_VALUES)[number];
 
-const PASSWORDS: Record<Stage, string | undefined> = {
-  gmat: import.meta.env.VITE_PASS_GMAT,
-  alpha: import.meta.env.VITE_PASS_ALPHA,
-  beta: import.meta.env.VITE_PASS_BETA,
-  delta: import.meta.env.VITE_PASS_DELTA,
-};
+function passwordFor(stage: Stage): string | undefined {
+  switch (stage) {
+    case "gmat":
+      return process.env.PASS_GMAT;
+    case "alpha":
+      return process.env.PASS_ALPHA;
+    case "beta":
+      return process.env.PASS_BETA;
+    case "delta":
+      return process.env.PASS_DELTA;
+  }
+}
 
 const PUBLIC_COLUMNS =
   "intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link";
@@ -26,7 +32,7 @@ export const getStageContent = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ data }) => {
-    const expected = PASSWORDS[data.stage];
+    const expected = passwordFor(data.stage);
     const unlocked =
       !!expected && !!data.password && data.password === expected;
 
@@ -37,4 +43,19 @@ export const getStageContent = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     return { content: row ?? null, unlocked };
+  });
+
+export const verifyStagePassword = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z
+      .object({
+        stage: z.enum(STAGE_VALUES),
+        password: z.string().min(1).max(200),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data }) => {
+    const expected = passwordFor(data.stage);
+    if (!expected) return { ok: false as const };
+    return { ok: data.password === expected };
   });

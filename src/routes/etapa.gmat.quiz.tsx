@@ -41,6 +41,7 @@ function pickRandomQuestions(): GmatQuestion[] {
 function GmatQuizPage() {
   const navigate = useNavigate();
   const [team, setTeam] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [startedAt, setStartedAt] = useState<string | null>(null);
   const [questions, setQuestions] = useState<GmatQuestion[] | null>(null);
   const [answers, setAnswers] = useState<number[]>(() =>
@@ -56,12 +57,14 @@ function GmatQuizPage() {
     if (typeof window === "undefined") return;
     const unlocked = localStorage.getItem("ncc_gmat_unlocked") === "true";
     const t = sessionStorage.getItem("ncc_gmat_team");
+    const tk = sessionStorage.getItem("ncc_gmat_token");
     const s = sessionStorage.getItem("ncc_gmat_started_at");
-    if (!unlocked || !t || !s) {
+    if (!unlocked || !t || !tk || !s) {
       navigate({ to: "/etapa/gmat" });
       return;
     }
     setTeam(t);
+    setToken(tk);
     setStartedAt(s);
 
     // Recuperar set de preguntas (para que recargas no cambien el examen)
@@ -107,7 +110,7 @@ function GmatQuizPage() {
 
   const submit = useCallback(
     async (auto: boolean) => {
-      if (submittedRef.current || !team || !startedAt || !questions) return;
+      if (submittedRef.current || !team || !token || !startedAt || !questions) return;
       submittedRef.current = true;
       setSubmitting(true);
       try {
@@ -116,6 +119,7 @@ function GmatQuizPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             team,
+            token,
             questionIds: questions.map((q) => q.id),
             answers,
             startedAt,
@@ -125,6 +129,7 @@ function GmatQuizPage() {
         if (!res.ok) throw new Error(data?.error ?? "Error al enviar");
         setResult({ score: data.score, total: data.total });
         sessionStorage.removeItem("ncc_gmat_team");
+        sessionStorage.removeItem("ncc_gmat_token");
         sessionStorage.removeItem("ncc_gmat_started_at");
         sessionStorage.removeItem("ncc_gmat_question_ids");
       } catch (e) {
@@ -137,7 +142,7 @@ function GmatQuizPage() {
         setSubmitting(false);
       }
     },
-    [answers, questions, startedAt, team],
+    [answers, questions, startedAt, team, token],
   );
 
   // Auto-submit al acabar el tiempo

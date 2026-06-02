@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { getTeamsFromDb } from "@/lib/ncc/teams.server";
+
 import { GMAT_QUESTIONS, GMAT_QUIZ_SIZE } from "@/lib/ncc/gmat-questions";
 import { GMAT_CORRECT_ANSWERS } from "@/lib/ncc/gmat-answers.server";
 
@@ -9,6 +9,7 @@ const VALID_IDS = new Set(GMAT_QUESTIONS.map((q) => q.id));
 
 const SubmissionSchema = z.object({
   team: z.string().min(1).max(200),
+  token: z.string().min(8).max(200),
   questionIds: z
     .array(z.number().int())
     .length(GMAT_QUIZ_SIZE)
@@ -38,21 +39,7 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             );
           }
 
-          const { team, questionIds, answers, startedAt } = parsed.data;
-
-          const validTeams = await getTeamsFromDb();
-          if (!validTeams.includes(team)) {
-            return Response.json(
-              { error: "Equipo no autorizado" },
-              { status: 403 },
-            );
-          }
-
-          // Calcular puntaje según las preguntas asignadas a este intento
-          let score = 0;
-          questionIds.forEach((qid, idx) => {
-            if (answers[idx] === GMAT_CORRECT_ANSWERS[qid]) score += 1;
-          });
+          const { team, token, questionIds, answers, startedAt } = parsed.data;
 
           const supabaseUrl =
             process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
@@ -67,6 +54,26 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
           const admin = createClient(supabaseUrl, serviceKey, {
             auth: { persistSession: false, autoRefreshToken: false },
           });
+
+          // Validar token contra el equipo
+          const { data: teamRow } = await admin
+            .from("gmat_teams")
+            .select("name, access_token")
+            .eq("name", team)
+            .maybeSingle();
+          if (!teamRow || (teamRow as { access_token: string }).access_token !== token) {
+            return Response.json(
+              { error: "Token de equipo inválido" },
+              { status: 403 },
+            );
+          }
+
+          // Calcular puntaje según las preguntas asignadas a este intento
+          let score = 0;
+          questionIds.forEach((qid, idx) => {
+            if (answers[idx] === GMAT_CORRECT_ANSWERS[qid]) score += 1;
+          });
+
 
           // Bloquear reintentos
           const { data: existing } = await admin

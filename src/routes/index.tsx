@@ -39,14 +39,12 @@ function Index() {
           label="GMAT"
           labelColor="#598c71"
           borderAccent="#598c71"
-          password={import.meta.env.VITE_PASS_GMAT ?? ""}
         />
         <StageGate
           id="alpha"
           label="ALPHA"
           labelColor="#598c71"
           borderAccent="#598c71"
-          password={import.meta.env.VITE_PASS_ALPHA ?? ""}
           iconUrl={alphaIcon}
         />
         <StageGate
@@ -54,7 +52,6 @@ function Index() {
           label="BETA"
           labelColor="#125b50"
           borderAccent="#125b50"
-          password={import.meta.env.VITE_PASS_BETA ?? ""}
           iconUrl={betaIcon}
         />
         <StageGate
@@ -62,11 +59,6 @@ function Index() {
           label="DELTA"
           labelColor="#125b50"
           borderAccent="#9ebcac"
-          password={
-            import.meta.env.VITE_PASS_DELTA ??
-            import.meta.env.VITE_PASS_OMEGA ??
-            ""
-          }
           iconUrl={deltaIcon}
         />
         <Contacto />

@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, AlertTriangle } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
 import { supabase } from "@/integrations/supabase/client";
+import { getGmatTeamToken } from "@/lib/ncc/gmat-team.functions";
 
 export const Route = createFileRoute("/etapa/gmat")({
   component: GmatTeamSelectPage,
@@ -67,9 +68,19 @@ function GmatTeamSelectPage() {
     setBlocked(false);
     setChecking(true);
     try {
-      // El bloqueo de reintentos se valida en el servidor al enviar (/submit responde 409
-      // si el equipo ya envió). Aquí solo navegamos para no depender del check.
+      const password =
+        typeof window !== "undefined"
+          ? localStorage.getItem("ncc_gmat_password")
+          : null;
+      if (!password) {
+        navigate({ to: "/", hash: "gmat" });
+        return;
+      }
+      const { token } = await getGmatTeamToken({
+        data: { team, password },
+      });
       sessionStorage.setItem("ncc_gmat_team", team);
+      sessionStorage.setItem("ncc_gmat_token", token);
       sessionStorage.setItem("ncc_gmat_started_at", new Date().toISOString());
       navigate({ to: "/etapa/gmat/quiz" });
     } catch {
@@ -145,7 +156,7 @@ function GmatTeamSelectPage() {
 
               {blocked && (
                 <p className="mt-3 text-sm" style={{ color: "#b3471a" }}>
-                  Este equipo ya envió el examen. No es posible reintentarlo.
+                  No se pudo iniciar el examen. Verifica que tu clave GMAT sea válida y vuelve a intentarlo.
                 </p>
               )}
 
