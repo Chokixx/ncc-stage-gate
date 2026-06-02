@@ -9,6 +9,7 @@ const VALID_IDS = new Set(GMAT_QUESTIONS.map((q) => q.id));
 
 const SubmissionSchema = z.object({
   team: z.string().min(1).max(200),
+  token: z.string().min(8).max(200),
   questionIds: z
     .array(z.number().int())
     .length(GMAT_QUIZ_SIZE)
@@ -38,12 +39,31 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             );
           }
 
-          const { team, questionIds, answers, startedAt } = parsed.data;
+          const { team, token, questionIds, answers, startedAt } = parsed.data;
 
-          const validTeams = await getTeamsFromDb();
-          if (!validTeams.includes(team)) {
+          const supabaseUrl =
+            process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+          const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+          if (!supabaseUrl || !serviceKey) {
             return Response.json(
-              { error: "Equipo no autorizado" },
+              { error: "Backend no configurado" },
+              { status: 500 },
+            );
+          }
+
+          const admin = createClient(supabaseUrl, serviceKey, {
+            auth: { persistSession: false, autoRefreshToken: false },
+          });
+
+          // Validar token contra el equipo
+          const { data: teamRow } = await admin
+            .from("gmat_teams")
+            .select("name, access_token")
+            .eq("name", team)
+            .maybeSingle();
+          if (!teamRow || (teamRow as { access_token: string }).access_token !== token) {
+            return Response.json(
+              { error: "Token de equipo inválido" },
               { status: 403 },
             );
           }
