@@ -6,15 +6,19 @@ const STAGE_VALUES = ["gmat", "alpha", "beta", "delta"] as const;
 type Stage = (typeof STAGE_VALUES)[number];
 
 function passwordFor(stage: Stage): string | undefined {
+  // Accept either PASS_X (runtime secret) or VITE_PASS_X (build-time env)
+  // so the gate keeps working whichever channel the value is stored in.
+  const pick = (...keys: string[]) =>
+    keys.map((k) => process.env[k]).find((v) => typeof v === "string" && v.length > 0);
   switch (stage) {
     case "gmat":
-      return process.env.PASS_GMAT;
+      return pick("PASS_GMAT", "VITE_PASS_GMAT");
     case "alpha":
-      return process.env.PASS_ALPHA;
+      return pick("PASS_ALPHA", "VITE_PASS_ALPHA");
     case "beta":
-      return process.env.PASS_BETA;
+      return pick("PASS_BETA", "VITE_PASS_BETA");
     case "delta":
-      return process.env.PASS_DELTA;
+      return pick("PASS_DELTA", "VITE_PASS_DELTA", "VITE_PASS_OMEGA");
   }
 }
 
