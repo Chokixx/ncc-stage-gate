@@ -64,6 +64,7 @@ export type SheetParticipant = {
   university: string;
   program: string;
   semester: string;
+  consentUrl?: string | null;
 };
 
 export async function appendRegistrationRows(input: {
@@ -71,7 +72,6 @@ export async function appendRegistrationRows(input: {
   mode: "solo" | "team";
   participants: SheetParticipant[];
   proofUrl: string | null;
-  consentUrl?: string | null;
 }) {
   await ensureTab();
 
@@ -88,7 +88,7 @@ export async function appendRegistrationRows(input: {
     p.program,
     p.semester,
     input.proofUrl ?? "",
-    input.consentUrl ?? "",
+    p.consentUrl ?? "",
     now,
   ]);
 
