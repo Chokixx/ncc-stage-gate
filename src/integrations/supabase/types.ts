@@ -79,6 +79,7 @@ export type Database = {
       }
       registrations: {
         Row: {
+          consent_url: string | null
           contact_email: string
           created_at: string
           id: string
@@ -88,6 +89,7 @@ export type Database = {
           team_name: string | null
         }
         Insert: {
+          consent_url?: string | null
           contact_email: string
           created_at?: string
           id?: string
@@ -97,6 +99,7 @@ export type Database = {
           team_name?: string | null
         }
         Update: {
+          consent_url?: string | null
           contact_email?: string
           created_at?: string
           id?: string
