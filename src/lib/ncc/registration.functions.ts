@@ -13,6 +13,14 @@ const ParticipantSchema = z.object({
   semester: z.string().trim().min(1).max(20),
 });
 
+const FileSchema = z.object({
+  filename: z.string().min(1).max(200),
+  contentType: z
+    .string()
+    .regex(/^(image\/(jpeg|jpg|png|webp)|application\/pdf)$/i, "Tipo no permitido"),
+  base64: z.string().min(1).max(10_000_000),
+});
+
 export const submitRegistration = createServerFn({ method: "POST" })
   .inputValidator((i) =>
     z
@@ -20,15 +28,8 @@ export const submitRegistration = createServerFn({ method: "POST" })
         mode: z.enum(["solo", "team"]),
         teamName: z.string().trim().max(120).optional().nullable(),
         participants: z.array(ParticipantSchema).min(1).max(4),
-        proof: z
-          .object({
-            filename: z.string().min(1).max(200),
-            contentType: z
-              .string()
-              .regex(/^image\/(jpeg|jpg|png|webp)$/i, "Tipo no permitido"),
-            base64: z.string().min(1).max(8_000_000),
-          })
-          .nullable(),
+        proof: FileSchema.nullable(),
+        consent: FileSchema.nullable(),
       })
       .superRefine((val, ctx) => {
         if (val.mode === "team") {
