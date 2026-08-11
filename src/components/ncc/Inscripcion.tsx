@@ -116,6 +116,21 @@ export function Inscripcion() {
     handleFile(e.target.files?.[0] ?? null);
   };
 
+  const handleConsent = (file: File | null) => {
+    if (!file) return;
+    if (!/^(application\/pdf|image\/(jpeg|jpg|png|webp))$/i.test(file.type)) {
+      setSubmitError("El consentimiento debe ser PDF o imagen (JPG, PNG).");
+      return;
+    }
+    if (file.size > 6 * 1024 * 1024) {
+      setSubmitError("El consentimiento debe pesar menos de 6MB.");
+      return;
+    }
+    setSubmitError(null);
+    setConsentFile(file);
+  };
+
+
   const copyNumber = async () => {
     try {
       await navigator.clipboard.writeText(BREB_KEY);
