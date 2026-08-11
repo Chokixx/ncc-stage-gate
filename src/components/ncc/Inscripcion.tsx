@@ -164,6 +164,8 @@ export function Inscripcion() {
       if (!p.semester.trim())
         return `Falta el semestre del integrante ${i + 1}.`;
     }
+    if (!consentFile)
+      return "Sube el consentimiento informado firmado (PDF o imagen).";
     if (!proofFile) return "Sube una foto del equipo o el comprobante de pago.";
     return null;
   };
@@ -180,6 +182,7 @@ export function Inscripcion() {
     setSubmitting(true);
     try {
       const base64 = proofFile ? await fileToBase64(proofFile) : null;
+      const consentBase64 = consentFile ? await fileToBase64(consentFile) : null;
       await submit({
         data: {
         mode,
@@ -200,6 +203,13 @@ export function Inscripcion() {
                 base64,
               }
             : null,
+          consent: consentFile && consentBase64
+            ? {
+                filename: consentFile.name,
+                contentType: consentFile.type || "application/pdf",
+                base64: consentBase64,
+              }
+            : null,
         },
       });
       setSuccess(participants);
@@ -218,6 +228,8 @@ export function Inscripcion() {
     setParticipants([emptyParticipant()]);
     setProofFile(null);
     setProofPreview(null);
+    setConsentFile(null);
+
     setSuccess(null);
     setSubmitError(null);
   };
