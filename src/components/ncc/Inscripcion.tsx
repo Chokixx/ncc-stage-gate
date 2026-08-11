@@ -10,8 +10,11 @@ import {
   ArrowLeft,
   ArrowRight,
   Loader2,
+  Download,
+  FileText,
 } from "lucide-react";
 import { submitRegistration } from "@/lib/ncc/registration.functions";
+import consentAsset from "@/assets/consentimiento-ncc.pdf.asset.json";
 
 type Participant = {
   fullName: string;
@@ -57,6 +60,8 @@ export function Inscripcion() {
   ]);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [consentFile, setConsentFile] = useState<File | null>(null);
+  const consentInputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -111,6 +116,21 @@ export function Inscripcion() {
     handleFile(e.target.files?.[0] ?? null);
   };
 
+  const handleConsent = (file: File | null) => {
+    if (!file) return;
+    if (!/^(application\/pdf|image\/(jpeg|jpg|png|webp))$/i.test(file.type)) {
+      setSubmitError("El consentimiento debe ser PDF o imagen (JPG, PNG).");
+      return;
+    }
+    if (file.size > 6 * 1024 * 1024) {
+      setSubmitError("El consentimiento debe pesar menos de 6MB.");
+      return;
+    }
+    setSubmitError(null);
+    setConsentFile(file);
+  };
+
+
   const copyNumber = async () => {
     try {
       await navigator.clipboard.writeText(BREB_KEY);
@@ -144,6 +164,8 @@ export function Inscripcion() {
       if (!p.semester.trim())
         return `Falta el semestre del integrante ${i + 1}.`;
     }
+    if (!consentFile)
+      return "Sube el consentimiento informado firmado (PDF o imagen).";
     if (!proofFile) return "Sube una foto del equipo o el comprobante de pago.";
     return null;
   };
@@ -160,6 +182,7 @@ export function Inscripcion() {
     setSubmitting(true);
     try {
       const base64 = proofFile ? await fileToBase64(proofFile) : null;
+      const consentBase64 = consentFile ? await fileToBase64(consentFile) : null;
       await submit({
         data: {
         mode,
@@ -180,6 +203,13 @@ export function Inscripcion() {
                 base64,
               }
             : null,
+          consent: consentFile && consentBase64
+            ? {
+                filename: consentFile.name,
+                contentType: consentFile.type || "application/pdf",
+                base64: consentBase64,
+              }
+            : null,
         },
       });
       setSuccess(participants);
@@ -198,6 +228,8 @@ export function Inscripcion() {
     setParticipants([emptyParticipant()]);
     setProofFile(null);
     setProofPreview(null);
+    setConsentFile(null);
+
     setSuccess(null);
     setSubmitError(null);
   };
@@ -485,6 +517,58 @@ export function Inscripcion() {
                   Los equipos deben tener <strong>exactamente 4 integrantes</strong> para poder inscribirse.
                 </p>
               )}
+            </div>
+
+            {/* Consentimiento informado */}
+            <div className="bg-white rounded-xl border border-[var(--ncc-steel)] p-5 md:p-6">
+              <div className="flex items-start justify-between flex-wrap gap-4">
+                <div>
+                  <h4 className="font-serif text-xl text-[var(--ncc-deep)]">
+                    Consentimiento informado
+                  </h4>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-1 max-w-md">
+                    Descarga el documento, fírmalo y súbelo firmado antes de
+                    adjuntar el comprobante de pago.
+                  </p>
+                </div>
+                <a
+                  href={consentAsset.url}
+                  download="Consentimiento_informado_NCC.pdf"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-md border border-[var(--ncc-deep)] text-[var(--ncc-deep)] px-4 py-2 text-sm font-medium hover:bg-[var(--ncc-mint)] transition"
+                >
+                  <Download className="h-4 w-4" /> Descargar consentimiento
+                </a>
+              </div>
+
+              <div
+                onClick={() => consentInputRef.current?.click()}
+                className="mt-5 cursor-pointer rounded-lg border-2 border-dashed border-[var(--ncc-steel)] hover:border-[var(--ncc-deep)]/50 p-5 text-center transition-colors"
+              >
+                {consentFile ? (
+                  <div className="flex items-center justify-center gap-2 text-sm text-[var(--ncc-deep)]">
+                    <FileText className="h-5 w-5" />
+                    <span className="font-medium">{consentFile.name}</span>
+                    <Check className="h-4 w-4" />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-[var(--muted-foreground)]">
+                    <Upload className="h-6 w-6" />
+                    <p className="text-sm">
+                      Sube el consentimiento firmado (obligatorio)
+                    </p>
+                    <p className="text-xs">PDF o imagen · máx. 6MB</p>
+                  </div>
+                )}
+                <input
+                  ref={consentInputRef}
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png,image/webp"
+                  onChange={(e) => handleConsent(e.target.files?.[0] ?? null)}
+                  className="hidden"
+                />
+              </div>
             </div>
 
             {/* Upload */}
