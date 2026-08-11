@@ -175,12 +175,22 @@ function AdminDashboard({
                 Administrador
               </h1>
             </div>
-            <button
-              onClick={onLogout}
-              className="inline-flex items-center gap-2 text-sm text-white/85 hover:text-white border border-white/30 hover:border-white/60 rounded-md px-3 py-1.5"
-            >
-              <LogOut className="h-4 w-4" /> Salir
-            </button>
+            <div className="flex items-center gap-2">
+              <a
+                href="https://docs.google.com/spreadsheets/d/1aikPHY5JjuLln1ZjzQOWvSsu-gk4KWRJqu3nUmglcB4/edit"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-white/85 hover:text-white border border-white/30 hover:border-white/60 rounded-md px-3 py-1.5"
+              >
+                Google Sheets
+              </a>
+              <button
+                onClick={onLogout}
+                className="inline-flex items-center gap-2 text-sm text-white/85 hover:text-white border border-white/30 hover:border-white/60 rounded-md px-3 py-1.5"
+              >
+                <LogOut className="h-4 w-4" /> Salir
+              </button>
+            </div>
           </div>
         </section>
 
