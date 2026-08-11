@@ -117,7 +117,7 @@ export function Inscripcion() {
     handleFile(e.target.files?.[0] ?? null);
   };
 
-  const handleConsent = (file: File | null) => {
+  const handleConsent = (idx: number, file: File | null) => {
     if (!file) return;
     if (!/^(application\/pdf|image\/(jpeg|jpg|png|webp))$/i.test(file.type)) {
       setSubmitError("El consentimiento debe ser PDF o imagen (JPG, PNG).");
@@ -128,7 +128,12 @@ export function Inscripcion() {
       return;
     }
     setSubmitError(null);
-    setConsentFile(file);
+    setConsentFiles((prev) => {
+      const next = [...prev];
+      while (next.length < participants.length) next.push(null);
+      next[idx] = file;
+      return next;
+    });
   };
 
 
