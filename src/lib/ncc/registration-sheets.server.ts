@@ -71,6 +71,7 @@ export async function appendRegistrationRows(input: {
   mode: "solo" | "team";
   participants: SheetParticipant[];
   proofUrl: string | null;
+  consentUrl?: string | null;
 }) {
   await ensureTab();
 
@@ -87,10 +88,11 @@ export async function appendRegistrationRows(input: {
     p.program,
     p.semester,
     input.proofUrl ?? "",
+    input.consentUrl ?? "",
     now,
   ]);
 
-  const range = `${TAB}!A:L`;
+  const range = `${TAB}!A:M`;
   const url = `${GATEWAY_URL}/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
   const res = await fetch(url, {
     method: "POST",
