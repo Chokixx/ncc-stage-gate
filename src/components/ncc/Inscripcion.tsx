@@ -521,6 +521,42 @@ export function Inscripcion() {
                       </select>
                     </div>
                   </div>
+
+                  {/* Consentimiento de este integrante */}
+                  <div
+                    onClick={() => consentInputRefs.current[idx]?.click()}
+                    className="mt-4 cursor-pointer rounded-lg border-2 border-dashed border-[var(--ncc-steel)] hover:border-[var(--ncc-deep)]/50 p-4 text-center transition-colors"
+                  >
+                    {consentFiles[idx] ? (
+                      <div className="flex items-center justify-center gap-2 text-sm text-[var(--ncc-deep)]">
+                        <FileText className="h-4 w-4" />
+                        <span className="font-medium">
+                          {consentFiles[idx]?.name}
+                        </span>
+                        <Check className="h-4 w-4" />
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 text-[var(--muted-foreground)]">
+                        <Upload className="h-5 w-5" />
+                        <p className="text-sm">
+                          Consentimiento firmado del integrante {idx + 1}{" "}
+                          (obligatorio)
+                        </p>
+                        <p className="text-xs">PDF o imagen · máx. 6MB</p>
+                      </div>
+                    )}
+                    <input
+                      ref={(el) => {
+                        consentInputRefs.current[idx] = el;
+                      }}
+                      type="file"
+                      accept="application/pdf,image/jpeg,image/png,image/webp"
+                      onChange={(e) =>
+                        handleConsent(idx, e.target.files?.[0] ?? null)
+                      }
+                      className="hidden"
+                    />
+                  </div>
                 </div>
               ))}
 
@@ -539,8 +575,9 @@ export function Inscripcion() {
                     Consentimiento informado
                   </h4>
                   <p className="text-xs text-[var(--muted-foreground)] mt-1 max-w-md">
-                    Descarga el documento, fírmalo y súbelo firmado antes de
-                    adjuntar el comprobante de pago.
+                    Descarga el documento y súbelo firmado{" "}
+                    <strong>por cada integrante</strong> en su respectiva
+                    ficha, antes de adjuntar el comprobante de pago.
                   </p>
                 </div>
                 <a
@@ -552,34 +589,6 @@ export function Inscripcion() {
                 >
                   <Download className="h-4 w-4" /> Descargar consentimiento
                 </a>
-              </div>
-
-              <div
-                onClick={() => consentInputRef.current?.click()}
-                className="mt-5 cursor-pointer rounded-lg border-2 border-dashed border-[var(--ncc-steel)] hover:border-[var(--ncc-deep)]/50 p-5 text-center transition-colors"
-              >
-                {consentFile ? (
-                  <div className="flex items-center justify-center gap-2 text-sm text-[var(--ncc-deep)]">
-                    <FileText className="h-5 w-5" />
-                    <span className="font-medium">{consentFile.name}</span>
-                    <Check className="h-4 w-4" />
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-[var(--muted-foreground)]">
-                    <Upload className="h-6 w-6" />
-                    <p className="text-sm">
-                      Sube el consentimiento firmado (obligatorio)
-                    </p>
-                    <p className="text-xs">PDF o imagen · máx. 6MB</p>
-                  </div>
-                )}
-                <input
-                  ref={consentInputRef}
-                  type="file"
-                  accept="application/pdf,image/jpeg,image/png,image/webp"
-                  onChange={(e) => handleConsent(e.target.files?.[0] ?? null)}
-                  className="hidden"
-                />
               </div>
             </div>
 
