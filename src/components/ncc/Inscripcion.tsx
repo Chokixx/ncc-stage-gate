@@ -519,6 +519,58 @@ export function Inscripcion() {
               )}
             </div>
 
+            {/* Consentimiento informado */}
+            <div className="bg-white rounded-xl border border-[var(--ncc-steel)] p-5 md:p-6">
+              <div className="flex items-start justify-between flex-wrap gap-4">
+                <div>
+                  <h4 className="font-serif text-xl text-[var(--ncc-deep)]">
+                    Consentimiento informado
+                  </h4>
+                  <p className="text-xs text-[var(--muted-foreground)] mt-1 max-w-md">
+                    Descarga el documento, fírmalo y súbelo firmado antes de
+                    adjuntar el comprobante de pago.
+                  </p>
+                </div>
+                <a
+                  href={consentAsset.url}
+                  download="Consentimiento_informado_NCC.pdf"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-md border border-[var(--ncc-deep)] text-[var(--ncc-deep)] px-4 py-2 text-sm font-medium hover:bg-[var(--ncc-mint)] transition"
+                >
+                  <Download className="h-4 w-4" /> Descargar consentimiento
+                </a>
+              </div>
+
+              <div
+                onClick={() => consentInputRef.current?.click()}
+                className="mt-5 cursor-pointer rounded-lg border-2 border-dashed border-[var(--ncc-steel)] hover:border-[var(--ncc-deep)]/50 p-5 text-center transition-colors"
+              >
+                {consentFile ? (
+                  <div className="flex items-center justify-center gap-2 text-sm text-[var(--ncc-deep)]">
+                    <FileText className="h-5 w-5" />
+                    <span className="font-medium">{consentFile.name}</span>
+                    <Check className="h-4 w-4" />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-[var(--muted-foreground)]">
+                    <Upload className="h-6 w-6" />
+                    <p className="text-sm">
+                      Sube el consentimiento firmado (obligatorio)
+                    </p>
+                    <p className="text-xs">PDF o imagen · máx. 6MB</p>
+                  </div>
+                )}
+                <input
+                  ref={consentInputRef}
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png,image/webp"
+                  onChange={(e) => handleConsent(e.target.files?.[0] ?? null)}
+                  className="hidden"
+                />
+              </div>
+            </div>
+
             {/* Upload */}
             <div className="bg-white rounded-xl border border-[var(--ncc-steel)] p-5 md:p-6">
               <label className="block text-sm font-medium text-[var(--ncc-deep)] mb-2">
