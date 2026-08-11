@@ -10,8 +10,11 @@ import {
   ArrowLeft,
   ArrowRight,
   Loader2,
+  Download,
+  FileText,
 } from "lucide-react";
 import { submitRegistration } from "@/lib/ncc/registration.functions";
+import consentAsset from "@/assets/consentimiento-ncc.pdf.asset.json";
 
 type Participant = {
   fullName: string;
