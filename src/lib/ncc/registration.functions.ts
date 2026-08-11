@@ -52,25 +52,29 @@ export const submitRegistration = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ data }) => {
-    let proofUrl: string | null = null;
-    if (data.proof) {
-      const bytes = Uint8Array.from(atob(data.proof.base64), (c) =>
-        c.charCodeAt(0),
-      );
-      const safeName = data.proof.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const uploadFile = async (file: {
+      filename: string;
+      contentType: string;
+      base64: string;
+    }) => {
+      const bytes = Uint8Array.from(atob(file.base64), (c) => c.charCodeAt(0));
+      const safeName = file.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
       const path = `${Date.now()}_${crypto.randomUUID()}_${safeName}`;
       const { error: upErr } = await supabaseAdmin.storage
         .from("registration-proofs")
         .upload(path, bytes, {
-          contentType: data.proof.contentType,
+          contentType: file.contentType,
           upsert: false,
         });
       if (upErr) throw new Error(upErr.message);
       const { data: pub } = supabaseAdmin.storage
         .from("registration-proofs")
         .getPublicUrl(path);
-      proofUrl = pub.publicUrl;
-    }
+      return pub.publicUrl;
+    };
+
+    const proofUrl = data.proof ? await uploadFile(data.proof) : null;
+    const consentUrl = data.consent ? await uploadFile(data.consent) : null;
 
     const teamName =
       data.mode === "team"
@@ -82,6 +86,7 @@ export const submitRegistration = createServerFn({ method: "POST" })
       team_name: teamName,
       participants: data.participants,
       proof_url: proofUrl,
+      consent_url: consentUrl,
       contact_email: data.participants[0].email,
     });
     if (error) throw new Error(error.message);
@@ -93,10 +98,12 @@ export const submitRegistration = createServerFn({ method: "POST" })
         mode: data.mode,
         participants: data.participants,
         proofUrl,
+        consentUrl,
       });
     } catch (e) {
       console.error("Sheets append falló:", e);
     }
+
 
     return { ok: true };
   });
