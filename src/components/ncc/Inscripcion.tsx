@@ -82,6 +82,7 @@ export function Inscripcion() {
           ]
         : [emptyParticipant()],
     );
+    setConsentFiles(m === "team" ? [null, null, null, null] : [null]);
   };
 
   const updateField = (
