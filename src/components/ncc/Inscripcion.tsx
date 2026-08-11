@@ -60,6 +60,8 @@ export function Inscripcion() {
   ]);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [consentFile, setConsentFile] = useState<File | null>(null);
+  const consentInputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
