@@ -29,6 +29,7 @@ const HEADERS = [
   "Pregrado",
   "Semestre",
   "Comprobante",
+  "Consentimiento",
   "Fecha",
 ];
 
