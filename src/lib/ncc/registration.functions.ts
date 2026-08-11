@@ -88,19 +88,27 @@ export const submitRegistration = createServerFn({ method: "POST" })
     };
 
     const proofUrl = data.proof ? await uploadFile(data.proof) : null;
-    const consentUrl = data.consent ? await uploadFile(data.consent) : null;
+    const consentUrls: (string | null)[] = [];
+    for (const c of data.consents) {
+      consentUrls.push(c ? await uploadFile(c) : null);
+    }
 
     const teamName =
       data.mode === "team"
         ? (data.teamName ?? "").trim()
         : (data.teamName ?? "").trim() || `Individual — ${data.participants[0].fullName}`;
 
+    const participantsWithConsent = data.participants.map((p, i) => ({
+      ...p,
+      consentUrl: consentUrls[i] ?? null,
+    }));
+
     const { error } = await supabaseAdmin.from("registrations").insert({
       mode: data.mode,
       team_name: teamName,
-      participants: data.participants,
+      participants: participantsWithConsent,
       proof_url: proofUrl,
-      consent_url: consentUrl,
+      consent_url: consentUrls[0] ?? null,
       contact_email: data.participants[0].email,
     });
     if (error) throw new Error(error.message);
@@ -110,9 +118,8 @@ export const submitRegistration = createServerFn({ method: "POST" })
       await appendRegistrationRows({
         teamName,
         mode: data.mode,
-        participants: data.participants,
+        participants: participantsWithConsent,
         proofUrl,
-        consentUrl,
       });
     } catch (e) {
       console.error("Sheets append falló:", e);
