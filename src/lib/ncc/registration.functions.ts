@@ -29,9 +29,23 @@ export const submitRegistration = createServerFn({ method: "POST" })
         teamName: z.string().trim().max(120).optional().nullable(),
         participants: z.array(ParticipantSchema).min(1).max(4),
         proof: FileSchema.nullable(),
-        consent: FileSchema.nullable(),
+        consents: z.array(FileSchema.nullable()).min(1).max(4),
       })
       .superRefine((val, ctx) => {
+        if (val.consents.length !== val.participants.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Falta el consentimiento de algún integrante.",
+            path: ["consents"],
+          });
+        }
+        if (val.consents.some((c) => !c)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Cada integrante debe subir su consentimiento firmado.",
+            path: ["consents"],
+          });
+        }
         if (val.mode === "team") {
           if (val.participants.length !== 4) {
             ctx.addIssue({
