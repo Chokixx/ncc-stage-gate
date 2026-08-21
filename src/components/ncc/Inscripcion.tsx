@@ -317,7 +317,7 @@ export function Inscripcion() {
                 </div>
                 <h3 className="font-serif text-2xl text-white">Estoy solo</h3>
                 <p className="mt-1 text-sm text-[var(--ncc-mint)]/80">
-                  Busco equipo para la competencia
+                  Inversión individual: <strong className="text-white">$50.000 COP</strong>
                 </p>
               </div>
               <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-mint)] opacity-0 transition-opacity group-hover:opacity-100" />
