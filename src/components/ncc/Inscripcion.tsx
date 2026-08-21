@@ -403,14 +403,16 @@ export function Inscripcion() {
               style={{ borderTop: "3px solid var(--ncc-deep)" }}
             >
               <label className="text-xs font-medium text-[var(--ncc-deep)]/70">
-                {mode === "team" ? "Nombre del equipo" : "Nombre de tu equipo / participación"}
+                {mode === "team" || mode === "incomplete"
+                  ? "Nombre del equipo"
+                  : "Nombre de tu equipo / participación"}
               </label>
               <input
                 type="text"
-                required={mode === "team"}
+                required={mode === "team" || mode === "incomplete"}
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
-                placeholder={mode === "team" ? "Ej. Los Estrategas" : "Opcional — ej. Los Estrategas"}
+                placeholder="Ej. Los Estrategas"
                 className="mt-1 w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
               />
             </div>
