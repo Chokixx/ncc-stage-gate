@@ -53,7 +53,7 @@ function fileToBase64(file: File): Promise<string> {
 export function Inscripcion() {
   const submit = useServerFn(submitRegistration);
 
-  const [mode, setMode] = useState<"solo" | "team" | null>(null);
+  const [mode, setMode] = useState<"solo" | "incomplete" | "team" | null>(null);
   const [teamName, setTeamName] = useState("");
   const [participants, setParticipants] = useState<Participant[]>([
     emptyParticipant(),
@@ -69,10 +69,10 @@ export function Inscripcion() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  const chooseMode = (m: "solo" | "team") => {
+  const chooseMode = (m: "solo" | "incomplete" | "team") => {
     setMode(m);
     setTeamName("");
-    setParticipants(
+    const initialParticipants =
       m === "team"
         ? [
             emptyParticipant(),
@@ -80,9 +80,23 @@ export function Inscripcion() {
             emptyParticipant(),
             emptyParticipant(),
           ]
-        : [emptyParticipant()],
-    );
-    setConsentFiles(m === "team" ? [null, null, null, null] : [null]);
+        : m === "incomplete"
+          ? [emptyParticipant(), emptyParticipant()]
+          : [emptyParticipant()];
+    setParticipants(initialParticipants);
+    setConsentFiles(initialParticipants.map(() => null));
+  };
+
+  const addParticipant = () => {
+    if (mode !== "incomplete" || participants.length >= 3) return;
+    setParticipants((prev) => [...prev, emptyParticipant()]);
+    setConsentFiles((prev) => [...prev, null]);
+  };
+
+  const removeParticipant = (idx: number) => {
+    if (mode !== "incomplete" || participants.length <= 2) return;
+    setParticipants((prev) => prev.filter((_, i) => i !== idx));
+    setConsentFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const updateField = (
