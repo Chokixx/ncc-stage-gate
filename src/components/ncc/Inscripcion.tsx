@@ -317,7 +317,7 @@ export function Inscripcion() {
                 </div>
                 <h3 className="font-serif text-2xl text-white">Estoy solo</h3>
                 <p className="mt-1 text-sm text-[var(--ncc-mint)]/80">
-                  Busco equipo para la competencia
+                  Inversión individual: <strong className="text-white">$50.000 COP</strong>
                 </p>
               </div>
               <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-mint)] opacity-0 transition-opacity group-hover:opacity-100" />
@@ -337,7 +337,7 @@ export function Inscripcion() {
                   Ya tengo equipo
                 </h3>
                 <p className="mt-1 text-sm text-[var(--ncc-deep)]/60">
-                  Inscríbelo con hasta 4 integrantes
+                  Inversión por equipo de 4: <strong>$200.000 COP</strong>
                 </p>
               </div>
               <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-deep)] opacity-20 transition-opacity group-hover:opacity-100" />
@@ -650,11 +650,14 @@ export function Inscripcion() {
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-[var(--ncc-deep)]/60">
-                    Pago
+                    Inversión {mode === "solo" ? "individual" : "por equipo"}
                   </p>
                   <h4 className="font-serif text-2xl text-[var(--ncc-deep)]">
-                    Paga por Bre-B
+                    {mode === "solo" ? "$50.000 COP" : "$200.000 COP"}
                   </h4>
+                  <p className="text-xs text-[var(--ncc-deep)]/60 mt-1">
+                    Pago por Bre-B
+                  </p>
                 </div>
               </div>
               <div className="mt-5 rounded-lg bg-[var(--ncc-mint)] p-4 flex items-center justify-between gap-3">
@@ -683,8 +686,8 @@ export function Inscripcion() {
                 </button>
               </div>
               <p className="text-xs text-[var(--muted-foreground)] mt-3">
-                Una vez realizado el pago, sube el comprobante en el campo de
-                foto superior.
+                Realiza el pago de <strong>{mode === "solo" ? "$50.000 COP" : "$200.000 COP"}</strong> y sube el
+                comprobante en el campo de foto superior.
               </p>
             </div>
 
