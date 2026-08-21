@@ -576,10 +576,41 @@ export function Inscripcion() {
                 </div>
               ))}
 
-              {mode === "team" && (
+              {(mode === "team" || mode === "incomplete") && (
                 <p className="text-xs text-[var(--muted-foreground)] text-center">
-                  Los equipos deben tener <strong>exactamente 4 integrantes</strong> para poder inscribirse.
+                  {mode === "team" ? (
+                    <>
+                      Los equipos completos deben tener{" "}
+                      <strong>exactamente 4 integrantes</strong>.
+                    </>
+                  ) : (
+                    <>
+                      Los equipos incompletos deben tener entre{" "}
+                      <strong>2 y 3 integrantes</strong>.
+                    </>
+                  )}
                 </p>
+              )}
+
+              {mode === "incomplete" && (
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={addParticipant}
+                    disabled={participants.length >= 3}
+                    className="text-sm px-3 py-1.5 rounded-md border border-[var(--ncc-deep)] text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)] disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  >
+                    + Agregar integrante
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeParticipant(participants.length - 1)}
+                    disabled={participants.length <= 2}
+                    className="text-sm px-3 py-1.5 rounded-md border border-[var(--ncc-steel)] text-[var(--ncc-deep)]/70 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  >
+                    - Quitar integrante
+                  </button>
+                </div>
               )}
             </div>
 
