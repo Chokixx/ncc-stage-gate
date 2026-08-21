@@ -69,16 +69,18 @@ export type SheetParticipant = {
 
 export async function appendRegistrationRows(input: {
   teamName: string;
-  mode: "solo" | "team";
+  mode: "solo" | "incomplete" | "team";
   participants: SheetParticipant[];
   proofUrl: string | null;
 }) {
   await ensureTab();
 
   const now = new Date().toISOString();
+  const modeLabel =
+    input.mode === "solo" ? "Individual" : input.mode === "incomplete" ? "Equipo incompleto" : "Equipo";
   const rows = input.participants.map((p, i) => [
     input.teamName,
-    input.mode === "solo" ? "Individual" : "Equipo",
+    modeLabel,
     String(i + 1),
     p.fullName,
     p.cedula,
