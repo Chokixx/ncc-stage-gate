@@ -721,13 +721,13 @@ export function Inscripcion() {
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-[var(--ncc-deep)]/60">
-                    Inversión {mode === "solo" ? "individual" : "por equipo"}
+                    {mode === "solo" ? "Inversión individual" : "Inversión por equipo"}
                   </p>
                   <h4 className="font-serif text-2xl text-[var(--ncc-deep)]">
-                    {mode === "solo" ? "$50.000 COP" : "$200.000 COP"}
+                    ${(participants.length * 50000).toLocaleString("es-CO")} COP
                   </h4>
                   <p className="text-xs text-[var(--ncc-deep)]/60 mt-1">
-                    Pago por Bre-B
+                    {participants.length} {participants.length === 1 ? "persona" : "personas"} × $50.000 · Pago por Bre-B
                   </p>
                 </div>
               </div>
@@ -757,7 +757,7 @@ export function Inscripcion() {
                 </button>
               </div>
               <p className="text-xs text-[var(--muted-foreground)] mt-3">
-                Realiza el pago de <strong>{mode === "solo" ? "$50.000 COP" : "$200.000 COP"}</strong> y sube el
+                Realiza el pago de <strong>${(participants.length * 50000).toLocaleString("es-CO")} COP</strong> y sube el
                 comprobante en el campo de foto superior.
               </p>
             </div>
