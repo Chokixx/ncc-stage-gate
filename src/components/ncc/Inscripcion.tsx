@@ -162,11 +162,13 @@ export function Inscripcion() {
   };
 
   const validate = (): string | null => {
-    if (mode === "team") {
+    if (mode === "team" || mode === "incomplete") {
       if (!teamName.trim() || teamName.trim().length < 2)
         return "El nombre del equipo es obligatorio.";
-      if (participants.length !== 4)
-        return "El equipo debe tener exactamente 4 integrantes.";
+      if (mode === "team" && participants.length !== 4)
+        return "El equipo completo debe tener exactamente 4 integrantes.";
+      if (mode === "incomplete" && (participants.length < 2 || participants.length > 3))
+        return "El equipo incompleto debe tener entre 2 y 3 integrantes.";
     }
     for (const [i, p] of participants.entries()) {
       if (!p.fullName.trim() || p.fullName.trim().length < 2)
