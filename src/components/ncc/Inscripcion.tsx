@@ -319,7 +319,7 @@ export function Inscripcion() {
             </button>
           </div>
         ) : mode === null ? (
-          <div className="space-y-4 animate-fade-in">
+          <div className="grid gap-4 animate-fade-in">
             {/* Solo — dark filled */}
             <button
               type="button"
@@ -339,25 +339,47 @@ export function Inscripcion() {
               <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-mint)] opacity-0 transition-opacity group-hover:opacity-100" />
             </button>
 
-            {/* Team — light outlined */}
-            <button
-              type="button"
-              onClick={() => chooseMode("team")}
-              className="group relative w-full overflow-hidden rounded-2xl border-2 border-[var(--ncc-deep)]/10 bg-white p-6 text-left shadow-sm transition-all hover:border-[var(--ncc-mint)] hover:bg-[var(--ncc-mint)]/10 active:scale-95"
-            >
-              <div className="relative z-10">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--ncc-mint)] bg-[var(--ncc-mint)]/30">
-                  <Users className="h-6 w-6 text-[var(--ncc-deep)]" />
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* Incomplete team */}
+              <button
+                type="button"
+                onClick={() => chooseMode("incomplete")}
+                className="group relative w-full overflow-hidden rounded-2xl border-2 border-[var(--ncc-deep)]/10 bg-[var(--ncc-mint)]/20 p-6 text-left shadow-sm transition-all hover:border-[var(--ncc-mint)] hover:bg-[var(--ncc-mint)]/40 active:scale-95"
+              >
+                <div className="relative z-10">
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--ncc-deep)]/20 bg-white/60">
+                    <Users className="h-6 w-6 text-[var(--ncc-deep)]" />
+                  </div>
+                  <h3 className="font-serif text-xl text-[var(--ncc-deep)]">
+                    Equipo incompleto
+                  </h3>
+                  <p className="mt-1 text-sm text-[var(--ncc-deep)]/60">
+                    2–3 integrantes: <strong>$50.000 por persona</strong>
+                  </p>
                 </div>
-                <h3 className="font-serif text-2xl text-[var(--ncc-deep)]">
-                  Ya tengo equipo
-                </h3>
-                <p className="mt-1 text-sm text-[var(--ncc-deep)]/60">
-                  Inversión por equipo de 4: <strong>$200.000 COP</strong>
-                </p>
-              </div>
-              <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-deep)] opacity-20 transition-opacity group-hover:opacity-100" />
-            </button>
+                <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-deep)] opacity-20 transition-opacity group-hover:opacity-100" />
+              </button>
+
+              {/* Team — light outlined */}
+              <button
+                type="button"
+                onClick={() => chooseMode("team")}
+                className="group relative w-full overflow-hidden rounded-2xl border-2 border-[var(--ncc-deep)]/10 bg-white p-6 text-left shadow-sm transition-all hover:border-[var(--ncc-mint)] hover:bg-[var(--ncc-mint)]/10 active:scale-95"
+              >
+                <div className="relative z-10">
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--ncc-mint)] bg-[var(--ncc-mint)]/30">
+                    <Users className="h-6 w-6 text-[var(--ncc-deep)]" />
+                  </div>
+                  <h3 className="font-serif text-2xl text-[var(--ncc-deep)]">
+                    Ya tengo equipo
+                  </h3>
+                  <p className="mt-1 text-sm text-[var(--ncc-deep)]/60">
+                    4 integrantes: <strong>$200.000 COP</strong>
+                  </p>
+                </div>
+                <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-deep)] opacity-20 transition-opacity group-hover:opacity-100" />
+              </button>
+            </div>
 
             <div className="mt-10 flex justify-center gap-2">
               <span className="h-1 w-1 rounded-full bg-[var(--ncc-deep)]/20" />
