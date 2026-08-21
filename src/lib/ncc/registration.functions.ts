@@ -25,7 +25,7 @@ export const submitRegistration = createServerFn({ method: "POST" })
   .inputValidator((i) =>
     z
       .object({
-        mode: z.enum(["solo", "team"]),
+        mode: z.enum(["solo", "incomplete", "team"]),
         teamName: z.string().trim().max(120).optional().nullable(),
         participants: z.array(ParticipantSchema).min(1).max(4),
         proof: FileSchema.nullable(),
@@ -50,7 +50,23 @@ export const submitRegistration = createServerFn({ method: "POST" })
           if (val.participants.length !== 4) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: "El equipo debe tener exactamente 4 integrantes.",
+              message: "El equipo completo debe tener exactamente 4 integrantes.",
+              path: ["participants"],
+            });
+          }
+          if (!val.teamName || val.teamName.trim().length < 2) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "El nombre del equipo es obligatorio.",
+              path: ["teamName"],
+            });
+          }
+        }
+        if (val.mode === "incomplete") {
+          if (val.participants.length < 2 || val.participants.length > 3) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "El equipo incompleto debe tener entre 2 y 3 integrantes.",
               path: ["participants"],
             });
           }
