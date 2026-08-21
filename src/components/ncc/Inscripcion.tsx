@@ -650,11 +650,14 @@ export function Inscripcion() {
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-[var(--ncc-deep)]/60">
-                    Pago
+                    Inversión {mode === "solo" ? "individual" : "por equipo"}
                   </p>
                   <h4 className="font-serif text-2xl text-[var(--ncc-deep)]">
-                    Paga por Bre-B
+                    {mode === "solo" ? "$50.000 COP" : "$200.000 COP"}
                   </h4>
+                  <p className="text-xs text-[var(--ncc-deep)]/60 mt-1">
+                    Pago por Bre-B
+                  </p>
                 </div>
               </div>
               <div className="mt-5 rounded-lg bg-[var(--ncc-mint)] p-4 flex items-center justify-between gap-3">
