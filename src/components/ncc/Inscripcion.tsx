@@ -337,7 +337,7 @@ export function Inscripcion() {
                   Ya tengo equipo
                 </h3>
                 <p className="mt-1 text-sm text-[var(--ncc-deep)]/60">
-                  Inscríbelo con hasta 4 integrantes
+                  Inversión por equipo de 4: <strong>$200.000 COP</strong>
                 </p>
               </div>
               <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-deep)] opacity-20 transition-opacity group-hover:opacity-100" />
