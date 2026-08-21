@@ -53,7 +53,7 @@ function fileToBase64(file: File): Promise<string> {
 export function Inscripcion() {
   const submit = useServerFn(submitRegistration);
 
-  const [mode, setMode] = useState<"solo" | "team" | null>(null);
+  const [mode, setMode] = useState<"solo" | "incomplete" | "team" | null>(null);
   const [teamName, setTeamName] = useState("");
   const [participants, setParticipants] = useState<Participant[]>([
     emptyParticipant(),
@@ -69,10 +69,10 @@ export function Inscripcion() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  const chooseMode = (m: "solo" | "team") => {
+  const chooseMode = (m: "solo" | "incomplete" | "team") => {
     setMode(m);
     setTeamName("");
-    setParticipants(
+    const initialParticipants =
       m === "team"
         ? [
             emptyParticipant(),
@@ -80,9 +80,23 @@ export function Inscripcion() {
             emptyParticipant(),
             emptyParticipant(),
           ]
-        : [emptyParticipant()],
-    );
-    setConsentFiles(m === "team" ? [null, null, null, null] : [null]);
+        : m === "incomplete"
+          ? [emptyParticipant(), emptyParticipant()]
+          : [emptyParticipant()];
+    setParticipants(initialParticipants);
+    setConsentFiles(initialParticipants.map(() => null));
+  };
+
+  const addParticipant = () => {
+    if (mode !== "incomplete" || participants.length >= 3) return;
+    setParticipants((prev) => [...prev, emptyParticipant()]);
+    setConsentFiles((prev) => [...prev, null]);
+  };
+
+  const removeParticipant = (idx: number) => {
+    if (mode !== "incomplete" || participants.length <= 2) return;
+    setParticipants((prev) => prev.filter((_, i) => i !== idx));
+    setConsentFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const updateField = (
@@ -148,11 +162,13 @@ export function Inscripcion() {
   };
 
   const validate = (): string | null => {
-    if (mode === "team") {
+    if (mode === "team" || mode === "incomplete") {
       if (!teamName.trim() || teamName.trim().length < 2)
         return "El nombre del equipo es obligatorio.";
-      if (participants.length !== 4)
-        return "El equipo debe tener exactamente 4 integrantes.";
+      if (mode === "team" && participants.length !== 4)
+        return "El equipo completo debe tener exactamente 4 integrantes.";
+      if (mode === "incomplete" && (participants.length < 2 || participants.length > 3))
+        return "El equipo incompleto debe tener entre 2 y 3 integrantes.";
     }
     for (const [i, p] of participants.entries()) {
       if (!p.fullName.trim() || p.fullName.trim().length < 2)
@@ -303,7 +319,7 @@ export function Inscripcion() {
             </button>
           </div>
         ) : mode === null ? (
-          <div className="space-y-4 animate-fade-in">
+          <div className="grid gap-4 animate-fade-in">
             {/* Solo — dark filled */}
             <button
               type="button"
@@ -323,25 +339,47 @@ export function Inscripcion() {
               <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-mint)] opacity-0 transition-opacity group-hover:opacity-100" />
             </button>
 
-            {/* Team — light outlined */}
-            <button
-              type="button"
-              onClick={() => chooseMode("team")}
-              className="group relative w-full overflow-hidden rounded-2xl border-2 border-[var(--ncc-deep)]/10 bg-white p-6 text-left shadow-sm transition-all hover:border-[var(--ncc-mint)] hover:bg-[var(--ncc-mint)]/10 active:scale-95"
-            >
-              <div className="relative z-10">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--ncc-mint)] bg-[var(--ncc-mint)]/30">
-                  <Users className="h-6 w-6 text-[var(--ncc-deep)]" />
+            <div className="grid sm:grid-cols-2 gap-4">
+              {/* Incomplete team */}
+              <button
+                type="button"
+                onClick={() => chooseMode("incomplete")}
+                className="group relative w-full overflow-hidden rounded-2xl border-2 border-[var(--ncc-deep)]/10 bg-[var(--ncc-mint)]/20 p-6 text-left shadow-sm transition-all hover:border-[var(--ncc-mint)] hover:bg-[var(--ncc-mint)]/40 active:scale-95"
+              >
+                <div className="relative z-10">
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--ncc-deep)]/20 bg-white/60">
+                    <Users className="h-6 w-6 text-[var(--ncc-deep)]" />
+                  </div>
+                  <h3 className="font-serif text-xl text-[var(--ncc-deep)]">
+                    Equipo incompleto
+                  </h3>
+                  <p className="mt-1 text-sm text-[var(--ncc-deep)]/60">
+                    2–3 integrantes: <strong>$50.000 por persona</strong>
+                  </p>
                 </div>
-                <h3 className="font-serif text-2xl text-[var(--ncc-deep)]">
-                  Ya tengo equipo
-                </h3>
-                <p className="mt-1 text-sm text-[var(--ncc-deep)]/60">
-                  Inversión por equipo de 4: <strong>$200.000 COP</strong>
-                </p>
-              </div>
-              <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-deep)] opacity-20 transition-opacity group-hover:opacity-100" />
-            </button>
+                <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-deep)] opacity-20 transition-opacity group-hover:opacity-100" />
+              </button>
+
+              {/* Team — light outlined */}
+              <button
+                type="button"
+                onClick={() => chooseMode("team")}
+                className="group relative w-full overflow-hidden rounded-2xl border-2 border-[var(--ncc-deep)]/10 bg-white p-6 text-left shadow-sm transition-all hover:border-[var(--ncc-mint)] hover:bg-[var(--ncc-mint)]/10 active:scale-95"
+              >
+                <div className="relative z-10">
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--ncc-mint)] bg-[var(--ncc-mint)]/30">
+                    <Users className="h-6 w-6 text-[var(--ncc-deep)]" />
+                  </div>
+                  <h3 className="font-serif text-2xl text-[var(--ncc-deep)]">
+                    Ya tengo equipo
+                  </h3>
+                  <p className="mt-1 text-sm text-[var(--ncc-deep)]/60">
+                    4 integrantes: <strong>$200.000 COP</strong>
+                  </p>
+                </div>
+                <ArrowRight className="absolute bottom-4 right-6 h-5 w-5 text-[var(--ncc-deep)] opacity-20 transition-opacity group-hover:opacity-100" />
+              </button>
+            </div>
 
             <div className="mt-10 flex justify-center gap-2">
               <span className="h-1 w-1 rounded-full bg-[var(--ncc-deep)]/20" />
@@ -365,14 +403,16 @@ export function Inscripcion() {
               style={{ borderTop: "3px solid var(--ncc-deep)" }}
             >
               <label className="text-xs font-medium text-[var(--ncc-deep)]/70">
-                {mode === "team" ? "Nombre del equipo" : "Nombre de tu equipo / participación"}
+                {mode === "team" || mode === "incomplete"
+                  ? "Nombre del equipo"
+                  : "Nombre de tu equipo / participación"}
               </label>
               <input
                 type="text"
-                required={mode === "team"}
+                required={mode === "team" || mode === "incomplete"}
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
-                placeholder={mode === "team" ? "Ej. Los Estrategas" : "Opcional — ej. Los Estrategas"}
+                placeholder="Ej. Los Estrategas"
                 className="mt-1 w-full rounded-md border border-[var(--ncc-steel)] px-3 py-2 text-sm outline-none focus:border-[var(--ncc-deep)]"
               />
             </div>
@@ -560,10 +600,41 @@ export function Inscripcion() {
                 </div>
               ))}
 
-              {mode === "team" && (
+              {(mode === "team" || mode === "incomplete") && (
                 <p className="text-xs text-[var(--muted-foreground)] text-center">
-                  Los equipos deben tener <strong>exactamente 4 integrantes</strong> para poder inscribirse.
+                  {mode === "team" ? (
+                    <>
+                      Los equipos completos deben tener{" "}
+                      <strong>exactamente 4 integrantes</strong>.
+                    </>
+                  ) : (
+                    <>
+                      Los equipos incompletos deben tener entre{" "}
+                      <strong>2 y 3 integrantes</strong>.
+                    </>
+                  )}
                 </p>
+              )}
+
+              {mode === "incomplete" && (
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={addParticipant}
+                    disabled={participants.length >= 3}
+                    className="text-sm px-3 py-1.5 rounded-md border border-[var(--ncc-deep)] text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)] disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  >
+                    + Agregar integrante
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeParticipant(participants.length - 1)}
+                    disabled={participants.length <= 2}
+                    className="text-sm px-3 py-1.5 rounded-md border border-[var(--ncc-steel)] text-[var(--ncc-deep)]/70 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                  >
+                    - Quitar integrante
+                  </button>
+                </div>
               )}
             </div>
 
@@ -650,13 +721,13 @@ export function Inscripcion() {
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-widest text-[var(--ncc-deep)]/60">
-                    Inversión {mode === "solo" ? "individual" : "por equipo"}
+                    {mode === "solo" ? "Inversión individual" : "Inversión por equipo"}
                   </p>
                   <h4 className="font-serif text-2xl text-[var(--ncc-deep)]">
-                    {mode === "solo" ? "$50.000 COP" : "$200.000 COP"}
+                    ${(participants.length * 50000).toLocaleString("es-CO")} COP
                   </h4>
                   <p className="text-xs text-[var(--ncc-deep)]/60 mt-1">
-                    Pago por Bre-B
+                    {participants.length} {participants.length === 1 ? "persona" : "personas"} × $50.000 · Pago por Bre-B
                   </p>
                 </div>
               </div>
@@ -686,7 +757,7 @@ export function Inscripcion() {
                 </button>
               </div>
               <p className="text-xs text-[var(--muted-foreground)] mt-3">
-                Realiza el pago de <strong>{mode === "solo" ? "$50.000 COP" : "$200.000 COP"}</strong> y sube el
+                Realiza el pago de <strong>${(participants.length * 50000).toLocaleString("es-CO")} COP</strong> y sube el
                 comprobante en el campo de foto superior.
               </p>
             </div>
