@@ -686,8 +686,8 @@ export function Inscripcion() {
                 </button>
               </div>
               <p className="text-xs text-[var(--muted-foreground)] mt-3">
-                Una vez realizado el pago, sube el comprobante en el campo de
-                foto superior.
+                Realiza el pago de <strong>{mode === "solo" ? "$50.000 COP" : "$200.000 COP"}</strong> y sube el
+                comprobante en el campo de foto superior.
               </p>
             </div>
 
