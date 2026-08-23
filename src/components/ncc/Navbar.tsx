@@ -5,14 +5,15 @@ import { NCCLogo } from "./Logo";
 
 const links = [
   { label: "Inicio", target: "inicio" },
-  { label: "Patrocinadores", target: "patrocinadores" },
   { label: "Inscripción", target: "inscripcion" },
+  { label: "Patrocinadores", target: "patrocinadores" },
   { label: "GMAT", target: "gmat" },
   { label: "ALPHA", target: "alpha" },
   { label: "BETA", target: "beta" },
   { label: "DELTA", target: "delta" },
   { label: "Contacto", target: "contacto" },
 ];
+
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
