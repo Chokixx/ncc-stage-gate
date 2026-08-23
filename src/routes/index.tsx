@@ -30,12 +30,13 @@ export const Route = createFileRoute("/")({
 function Index() {
   return (
     <div className="min-h-screen bg-[var(--ncc-cream)]">
+      <AnnouncementBanner />
       <Navbar />
       <main>
         <Hero />
-        <MisionVision />
-        <Patrocinadores />
         <Inscripcion />
+        <Patrocinadores />
+        <MisionVision />
         <StageGate
           id="gmat"
           label="GMAT"
@@ -69,3 +70,4 @@ function Index() {
     </div>
   );
 }
+
