@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Hero } from "@/components/ncc/Hero";
+import { AnnouncementBanner } from "@/components/ncc/AnnouncementBanner";
 import { MisionVision } from "@/components/ncc/MisionVision";
 import { StageGate } from "@/components/ncc/StageGate";
 import { Patrocinadores } from "@/components/ncc/Patrocinadores";
@@ -10,6 +11,7 @@ import { Footer } from "@/components/ncc/Footer";
 import alphaIcon from "@/assets/alpha-letter.png";
 import betaIcon from "@/assets/beta-letter.png";
 import deltaIcon from "@/assets/delta-letter.png";
+
 
 export const Route = createFileRoute("/")({
   component: Index,
