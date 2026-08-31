@@ -1,0 +1,2 @@
+ALTER TABLE public.registrations DROP CONSTRAINT IF EXISTS registrations_mode_check;
+ALTER TABLE public.registrations ADD CONSTRAINT registrations_mode_check CHECK (mode = ANY (ARRAY['solo'::text, 'team'::text, 'incomplete'::text]));
