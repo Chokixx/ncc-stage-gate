@@ -1,4 +1,5 @@
 import { Megaphone, ArrowRight } from "lucide-react";
+import { CountdownTimer } from "./CountdownTimer";
 
 export function AnnouncementBanner() {
   return (
@@ -10,6 +11,7 @@ export function AnnouncementBanner() {
       <span className="inline-flex flex-wrap items-center justify-center gap-2">
         <Megaphone className="h-4 w-4" />
         <span>Las inscripciones ya están abiertas — NCC 2026</span>
+        <CountdownTimer compact />
         <span className="hidden sm:inline-flex items-center gap-1 underline underline-offset-2 opacity-90 group-hover:opacity-100">
           Inscríbete ahora
           <ArrowRight className="h-3.5 w-3.5" />
@@ -18,5 +20,3 @@ export function AnnouncementBanner() {
     </a>
   );
 }
-
-

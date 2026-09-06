@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { submitRegistration } from "@/lib/ncc/registration.functions";
 import consentAsset from "@/assets/consentimiento-ncc.pdf.asset.json";
+import { CountdownTimer } from "./CountdownTimer";
 
 type Participant = {
   fullName: string;
