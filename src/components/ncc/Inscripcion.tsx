@@ -279,6 +279,10 @@ export function Inscripcion() {
             <br />
             <span className="relative inline-block italic">
               NCC 2026
+            </span>
+          </h2>
+          <div className="mt-5 flex justify-center">
+            <CountdownTimer />
               <span className="absolute -bottom-1 left-0 w-full h-1 rounded-full bg-[var(--ncc-mint)]" />
             </span>
           </h2>
