@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { submitRegistration } from "@/lib/ncc/registration.functions";
 import consentAsset from "@/assets/consentimiento-ncc.pdf.asset.json";
+import { CountdownTimer } from "./CountdownTimer";
 
 type Participant = {
   fullName: string;
@@ -278,9 +279,11 @@ export function Inscripcion() {
             <br />
             <span className="relative inline-block italic">
               NCC 2026
-              <span className="absolute -bottom-1 left-0 w-full h-1 rounded-full bg-[var(--ncc-mint)]" />
             </span>
           </h2>
+          <div className="mt-5 flex justify-center">
+            <CountdownTimer />
+          </div>
           <p className="mt-4 text-sm font-medium tracking-wide text-[var(--ncc-deep)]/70">
             Completa el formulario para reservar tu cupo
           </p>
