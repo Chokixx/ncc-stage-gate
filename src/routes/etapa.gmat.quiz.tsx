@@ -275,6 +275,7 @@ function GmatQuizPage() {
                           type="radio"
                           name={`q-${qi}`}
                           checked={selected}
+                          disabled={timeUp || submitting}
                           onChange={() =>
                             setAnswers((prev) => {
                               const next = [...prev];
@@ -284,6 +285,7 @@ function GmatQuizPage() {
                           }
                           className="accent-[var(--ncc-deep)]"
                         />
+
                         <span className="text-sm text-[var(--ncc-deep)]">{opt}</span>
                       </label>
                     );
