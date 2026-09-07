@@ -94,11 +94,18 @@ function GmatQuizPage() {
     setQuestions(selected);
   }, [navigate]);
 
-  // Tick del cronómetro
+  // Tick del cronómetro (y re-sincroniza al volver a la pestaña)
   useEffect(() => {
     if (!startedAt) return;
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
+    const tick = () => setNow(Date.now());
+    const id = window.setInterval(tick, 1000);
+    window.addEventListener("visibilitychange", tick);
+    window.addEventListener("focus", tick);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener("visibilitychange", tick);
+      window.removeEventListener("focus", tick);
+    };
   }, [startedAt]);
 
   const endsAt = useMemo(() => {
@@ -113,41 +120,53 @@ function GmatQuizPage() {
       if (submittedRef.current || !team || !token || !startedAt || !questions) return;
       submittedRef.current = true;
       setSubmitting(true);
+      const payload = JSON.stringify({
+        team,
+        token,
+        questionIds: questions.map((q) => q.id),
+        answers,
+        startedAt,
+      });
+      const attempts = auto ? 5 : 1;
       try {
-        const res = await fetch("/api/public/gmat/submit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            team,
-            token,
-            questionIds: questions.map((q) => q.id),
-            answers,
-            startedAt,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error ?? "Error al enviar");
-        setResult({ score: data.score, total: data.total });
-        sessionStorage.removeItem("ncc_gmat_team");
-        sessionStorage.removeItem("ncc_gmat_token");
-        sessionStorage.removeItem("ncc_gmat_started_at");
-        sessionStorage.removeItem("ncc_gmat_question_ids");
+        let lastError: unknown = null;
+        for (let i = 0; i < attempts; i++) {
+          try {
+            const res = await fetch("/api/public/gmat/submit", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: payload,
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.error ?? "Error al enviar");
+            setResult({ score: data.score, total: data.total });
+            sessionStorage.removeItem("ncc_gmat_team");
+            sessionStorage.removeItem("ncc_gmat_token");
+            sessionStorage.removeItem("ncc_gmat_started_at");
+            sessionStorage.removeItem("ncc_gmat_question_ids");
+            return;
+          } catch (err) {
+            lastError = err;
+            if (i < attempts - 1) {
+              await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+            }
+          }
+        }
+        throw lastError;
       } catch (e) {
         console.error(e);
-        if (!auto) {
-          submittedRef.current = false;
-          alert(
-            e instanceof Error && e.message
-              ? `No se pudo enviar: ${e.message}`
-              : "No se pudo enviar el examen. Intenta de nuevo.",
-          );
-        }
+        submittedRef.current = false;
+        alert(
+          e instanceof Error && e.message
+            ? `No se pudo enviar: ${e.message}`
+            : "No se pudo enviar el examen. Intenta de nuevo.",
+        );
       } finally {
-
         setSubmitting(false);
       }
     },
     [answers, questions, startedAt, team, token],
+
   );
 
   // Auto-submit al acabar el tiempo
