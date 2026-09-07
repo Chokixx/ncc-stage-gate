@@ -172,10 +172,16 @@ function GmatQuizPage() {
   // Auto-submit al acabar el tiempo
   useEffect(() => {
     if (!endsAt) return;
-    if (remaining <= 0 && !submittedRef.current) {
-      void submit(true);
+    if (remaining <= 0) {
+      if (!submittedRef.current) void submit(true);
+      return;
     }
+    const id = window.setTimeout(() => {
+      if (!submittedRef.current) void submit(true);
+    }, remaining + 200);
+    return () => window.clearTimeout(id);
   }, [remaining, endsAt, submit]);
+
 
   if (!team || !startedAt || !questions) {
     return (
