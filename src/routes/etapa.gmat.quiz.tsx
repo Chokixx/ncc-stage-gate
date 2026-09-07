@@ -136,9 +136,14 @@ function GmatQuizPage() {
         console.error(e);
         if (!auto) {
           submittedRef.current = false;
-          alert("No se pudo enviar el examen. Intenta de nuevo.");
+          alert(
+            e instanceof Error && e.message
+              ? `No se pudo enviar: ${e.message}`
+              : "No se pudo enviar el examen. Intenta de nuevo.",
+          );
         }
       } finally {
+
         setSubmitting(false);
       }
     },
