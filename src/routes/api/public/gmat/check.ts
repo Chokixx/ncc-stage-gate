@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-const Schema = z.object({ team: z.string().min(1).max(200) });
+const Schema = z.object({
+  team: z.string().min(1).max(200),
+  retryKey: z.string().max(200).optional(),
+});
 
 export const Route = createFileRoute("/api/public/gmat/check")({
   server: {
@@ -31,7 +34,13 @@ export const Route = createFileRoute("/api/public/gmat/check")({
             .select("id")
             .eq("team", parsed.data.team)
             .maybeSingle();
-          return Response.json({ submitted: !!data });
+          if (!data) return Response.json({ submitted: false });
+          const retryKey = process.env.GMAT_RETRY_KEY;
+          const provided = parsed.data.retryKey?.trim();
+          if (retryKey && provided && provided === retryKey) {
+            return Response.json({ submitted: true, allowed: true });
+          }
+          return Response.json({ submitted: true, allowed: false });
         } catch (e) {
           console.error("[gmat/check]", e);
           return Response.json({ error: "Error inesperado" }, { status: 500 });
