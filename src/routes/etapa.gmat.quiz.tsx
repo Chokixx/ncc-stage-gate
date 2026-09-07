@@ -126,6 +126,10 @@ function GmatQuizPage() {
         questionIds: questions.map((q) => q.id),
         answers,
         startedAt,
+        retryKey:
+          typeof window !== "undefined"
+            ? sessionStorage.getItem("ncc_gmat_retry_key") ?? undefined
+            : undefined,
       });
       const attempts = auto ? 5 : 1;
       try {
@@ -144,6 +148,7 @@ function GmatQuizPage() {
             sessionStorage.removeItem("ncc_gmat_token");
             sessionStorage.removeItem("ncc_gmat_started_at");
             sessionStorage.removeItem("ncc_gmat_question_ids");
+            sessionStorage.removeItem("ncc_gmat_retry_key");
             return;
           } catch (err) {
             lastError = err;

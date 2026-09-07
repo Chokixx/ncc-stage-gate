@@ -25,6 +25,9 @@ function GmatTeamSelectPage() {
   const [teams, setTeams] = useState<string[]>([]);
   const [checking, setChecking] = useState(false);
   const [blocked, setBlocked] = useState(false);
+  const [alreadyDone, setAlreadyDone] = useState(false);
+  const [retryKey, setRetryKey] = useState("");
+  const [retryError, setRetryError] = useState("");
 
   useEffect(() => {
     if (isQuizRoute) return;
@@ -66,8 +69,23 @@ function GmatTeamSelectPage() {
   const onStart = async () => {
     if (!team) return;
     setBlocked(false);
+    setRetryError("");
     setChecking(true);
     try {
+      const checkRes = await fetch("/api/public/gmat/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          team,
+          ...(retryKey.trim() ? { retryKey: retryKey.trim() } : {}),
+        }),
+      });
+      const check = await checkRes.json();
+      if (check?.submitted && !check?.allowed) {
+        setAlreadyDone(true);
+        if (retryKey.trim()) setRetryError("Clave de reintento incorrecta.");
+        return;
+      }
       const password =
         typeof window !== "undefined"
           ? localStorage.getItem("ncc_gmat_password")
@@ -82,6 +100,11 @@ function GmatTeamSelectPage() {
       sessionStorage.setItem("ncc_gmat_team", team);
       sessionStorage.setItem("ncc_gmat_token", token);
       sessionStorage.setItem("ncc_gmat_started_at", new Date().toISOString());
+      if (retryKey.trim()) {
+        sessionStorage.setItem("ncc_gmat_retry_key", retryKey.trim());
+      } else {
+        sessionStorage.removeItem("ncc_gmat_retry_key");
+      }
       navigate({ to: "/etapa/gmat/quiz" });
     } catch {
       setBlocked(true);
@@ -153,6 +176,31 @@ function GmatTeamSelectPage() {
                   </option>
                 ))}
               </select>
+
+              {alreadyDone && (
+                <div
+                  className="mt-4 rounded-md p-4"
+                  style={{ backgroundColor: "#fdf2e9" }}
+                >
+                  <p className="text-sm text-[var(--ncc-deep)] leading-relaxed">
+                    Este equipo <strong>ya presentó el examen</strong>. Solo se
+                    permite un intento. Si la organización autorizó un nuevo
+                    intento, ingresa la clave especial de reintento.
+                  </p>
+                  <input
+                    type="password"
+                    value={retryKey}
+                    onChange={(e) => setRetryKey(e.target.value)}
+                    placeholder="Clave especial de reintento"
+                    className="mt-3 w-full rounded-md border border-[var(--ncc-steel)] bg-white px-4 py-2.5 text-sm text-[var(--ncc-deep)] outline-none focus:border-[var(--ncc-deep)]"
+                  />
+                  {retryError && (
+                    <p className="mt-2 text-sm" style={{ color: "#b3471a" }}>
+                      {retryError}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {blocked && (
                 <p className="mt-3 text-sm" style={{ color: "#b3471a" }}>
