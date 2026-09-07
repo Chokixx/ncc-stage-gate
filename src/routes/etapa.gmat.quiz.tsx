@@ -224,6 +224,8 @@ function GmatQuizPage() {
   }
 
   const lowTime = remaining <= 5 * 60 * 1000;
+  const timeUp = remaining <= 0;
+
   const answeredCount = answers.filter((a) => a >= 0).length;
 
   return (
