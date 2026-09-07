@@ -75,44 +75,41 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
           });
 
 
-          // Bloquear reintentos
+          // Permitir reenvío: se conserva el último intento del equipo
           const { data: existing } = await admin
             .from("gmat_submissions")
             .select("id")
             .eq("team", team)
             .maybeSingle();
-          if (existing) {
-            return Response.json(
-              { error: "Este equipo ya envió el examen." },
-              { status: 409 },
-            );
-          }
 
-          const { data, error } = await admin
-            .from("gmat_submissions")
-            .insert({
-              team,
-              answers: { questionIds, answers },
-              score,
-              total: GMAT_QUIZ_SIZE,
-              started_at: startedAt ?? null,
-            })
+          const payload = {
+            team,
+            answers: { questionIds, answers },
+            score,
+            total: GMAT_QUIZ_SIZE,
+            started_at: startedAt ?? null,
+            submitted_at: new Date().toISOString(),
+          };
+
+          const query = existing
+            ? admin
+                .from("gmat_submissions")
+                .update(payload)
+                .eq("id", (existing as { id: string }).id)
+            : admin.from("gmat_submissions").insert(payload);
+
+          const { data, error } = await query
             .select("id, submitted_at, started_at")
             .single();
 
           if (error) {
-            if ((error as { code?: string }).code === "23505") {
-              return Response.json(
-                { error: "Este equipo ya envió el examen." },
-                { status: 409 },
-              );
-            }
-            console.error("[gmat/submit] insert error", error);
+            console.error("[gmat/submit] save error", error);
             return Response.json(
               { error: "No se pudo registrar el intento" },
               { status: 500 },
             );
           }
+
 
           // Sincronizar Google Sheets (no rompe la respuesta si falla)
           try {
