@@ -23,6 +23,7 @@ const SubmissionSchema = z.object({
     .array(z.number().int().min(-1).max(4))
     .length(GMAT_QUIZ_SIZE),
   startedAt: z.string().datetime().optional(),
+  retryKey: z.string().max(200).optional(),
 });
 
 export const Route = createFileRoute("/api/public/gmat/submit")({
@@ -39,7 +40,8 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
             );
           }
 
-          const { team, token, questionIds, answers, startedAt } = parsed.data;
+          const { team, token, questionIds, answers, startedAt, retryKey } =
+            parsed.data;
 
           const supabaseUrl =
             process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
@@ -75,12 +77,27 @@ export const Route = createFileRoute("/api/public/gmat/submit")({
           });
 
 
-          // Permitir reenvío: se conserva el último intento del equipo
+          // Un solo intento por equipo: el reenvío exige la clave especial
           const { data: existing } = await admin
             .from("gmat_submissions")
             .select("id")
             .eq("team", team)
             .maybeSingle();
+
+          if (existing) {
+            const expectedRetryKey = process.env.GMAT_RETRY_KEY;
+            const provided = retryKey?.trim();
+            if (!expectedRetryKey || !provided || provided !== expectedRetryKey) {
+              return Response.json(
+                {
+                  error:
+                    "Este equipo ya presentó el examen. Se requiere la clave especial de reintento.",
+                  retryRequired: true,
+                },
+                { status: 409 },
+              );
+            }
+          }
 
           const payload = {
             team,
