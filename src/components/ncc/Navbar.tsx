@@ -126,6 +126,14 @@ export function Navbar() {
         <nav className="border-t border-[var(--ncc-steel)] bg-white">
           <div className="max-w-7xl mx-auto px-5 py-2 flex flex-col">
             {links.map((l) => navBtn(l.target, l.label, true))}
+            <Link
+              to="/equipos"
+              onClick={() => setOpen(false)}
+              className="text-left px-3 py-3 text-sm font-medium rounded-md text-[var(--ncc-deep)]/80 hover:bg-[var(--ncc-mint)]"
+            >
+              Equipos
+            </Link>
+
           </div>
         </nav>
       </div>
