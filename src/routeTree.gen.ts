@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as EquiposRouteImport } from './routes/equipos'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EtapaGmatRouteImport } from './routes/etapa.gmat'
@@ -17,6 +18,11 @@ import { Route as EtapaGmatQuizRouteImport } from './routes/etapa.gmat.quiz'
 import { Route as ApiPublicGmatSubmitRouteImport } from './routes/api/public/gmat/submit'
 import { Route as ApiPublicGmatCheckRouteImport } from './routes/api/public/gmat/check'
 
+const EquiposRoute = EquiposRouteImport.update({
+  id: '/equipos',
+  path: '/equipos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -56,6 +62,7 @@ const ApiPublicGmatCheckRoute = ApiPublicGmatCheckRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/equipos': typeof EquiposRoute
   '/etapa/$stage': typeof EtapaStageRoute
   '/etapa/gmat': typeof EtapaGmatRouteWithChildren
   '/etapa/gmat/quiz': typeof EtapaGmatQuizRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/equipos': typeof EquiposRoute
   '/etapa/$stage': typeof EtapaStageRoute
   '/etapa/gmat': typeof EtapaGmatRouteWithChildren
   '/etapa/gmat/quiz': typeof EtapaGmatQuizRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/equipos': typeof EquiposRoute
   '/etapa/$stage': typeof EtapaStageRoute
   '/etapa/gmat': typeof EtapaGmatRouteWithChildren
   '/etapa/gmat/quiz': typeof EtapaGmatQuizRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/equipos'
     | '/etapa/$stage'
     | '/etapa/gmat'
     | '/etapa/gmat/quiz'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/equipos'
     | '/etapa/$stage'
     | '/etapa/gmat'
     | '/etapa/gmat/quiz'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/equipos'
     | '/etapa/$stage'
     | '/etapa/gmat'
     | '/etapa/gmat/quiz'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  EquiposRoute: typeof EquiposRoute
   EtapaStageRoute: typeof EtapaStageRoute
   EtapaGmatRoute: typeof EtapaGmatRouteWithChildren
   ApiPublicGmatCheckRoute: typeof ApiPublicGmatCheckRoute
@@ -122,6 +135,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/equipos': {
+      id: '/equipos'
+      path: '/equipos'
+      fullPath: '/equipos'
+      preLoaderRoute: typeof EquiposRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -189,6 +209,7 @@ const EtapaGmatRouteWithChildren = EtapaGmatRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  EquiposRoute: EquiposRoute,
   EtapaStageRoute: EtapaStageRoute,
   EtapaGmatRoute: EtapaGmatRouteWithChildren,
   ApiPublicGmatCheckRoute: ApiPublicGmatCheckRoute,

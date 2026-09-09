@@ -92,7 +92,14 @@ export function Navbar() {
         <div className="flex items-center gap-1">
           <nav className="hidden md:flex items-center gap-1">
             {links.map((l) => navBtn(l.target, l.label))}
+            <Link
+              to="/equipos"
+              className="px-2 lg:px-3 py-2 text-sm font-medium rounded-md text-[var(--ncc-deep)]/80 hover:text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)] transition-colors"
+            >
+              Equipos
+            </Link>
           </nav>
+
 
           <Link
             to="/admin"
