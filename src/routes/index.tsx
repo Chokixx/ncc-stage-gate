@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Hero } from "@/components/ncc/Hero";
-import { AnnouncementBanner } from "@/components/ncc/AnnouncementBanner";
+
 import { MisionVision } from "@/components/ncc/MisionVision";
 import { StageGate } from "@/components/ncc/StageGate";
 import { Patrocinadores } from "@/components/ncc/Patrocinadores";
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   return (
     <div className="min-h-screen bg-[var(--ncc-cream)]">
-      <AnnouncementBanner />
+      
       <Navbar />
       <main>
         <Hero />
