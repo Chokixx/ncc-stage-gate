@@ -263,7 +263,42 @@ export function Inscripcion() {
     setSubmitError(null);
   };
 
+  const REGISTRATIONS_OPEN = false;
+
+  if (!REGISTRATIONS_OPEN) {
+    return (
+      <section
+        id="inscripcion"
+        className="w-full"
+        style={{ backgroundColor: "var(--ncc-cream)" }}
+      >
+        <div className="max-w-xl mx-auto px-6 py-20 md:py-28 text-center">
+          <span className="inline-block px-3 py-1 mb-4 rounded-full bg-[var(--ncc-deep)] text-white text-[10px] font-bold tracking-widest uppercase">
+            Inscripciones cerradas
+          </span>
+          <h2 className="font-serif text-4xl md:text-5xl leading-tight text-[var(--ncc-deep)]">
+            Inscripción <span className="opacity-40">—</span>
+            <br />
+            <span className="italic">NCC 2026</span>
+          </h2>
+          <p className="mt-5 text-sm text-[var(--ncc-deep)]/70">
+            El periodo de inscripciones para el National Case Competition 2026
+            ya finalizó. Consulta los equipos inscritos y prepárate para las
+            siguientes etapas.
+          </p>
+          <a
+            href="/equipos"
+            className="mt-7 inline-flex items-center justify-center rounded-md bg-[var(--ncc-deep)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+          >
+            Ver equipos inscritos
+          </a>
+        </div>
+      </section>
+    );
+  }
+
   return (
+
     <section
       id="inscripcion"
       className="w-full"
