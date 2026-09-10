@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search, Users, Trophy } from "lucide-react";
+import { Search, Users, Trophy, Mail, Phone } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
 import { EQUIPOS_NCC_2026 } from "@/lib/ncc/equipos-2026";
@@ -41,6 +41,7 @@ function initials(name: string) {
 
 function EquiposPage() {
   const [q, setQ] = useState("");
+  const [openMember, setOpenMember] = useState<string | null>(null);
 
   const teams = useMemo(() => {
     const query = normalize(q.trim());
@@ -48,9 +49,14 @@ function EquiposPage() {
     return EQUIPOS_NCC_2026.filter(
       (t) =>
         normalize(t.name).includes(query) ||
-        t.members.some((m) => normalize(m).includes(query)),
+        t.members.some(
+          (m) =>
+            normalize(m.name).includes(query) ||
+            normalize(m.email).includes(query),
+        ),
     );
   }, [q]);
+
 
   const totalMembers = EQUIPOS_NCC_2026.reduce(
     (a, t) => a + t.members.length,
