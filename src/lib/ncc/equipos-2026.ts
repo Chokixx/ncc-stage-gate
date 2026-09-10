@@ -17,6 +17,11 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
       { name: "Ana Sofía Merchán", email: "a.merchanh@uniandes.edu.co", phone: "3154968068" },
       { name: "Susana Franco Cardozo", email: "sfrancocardozo@gmail.com", phone: "3005281280" },
       { name: "Mateo Rincón", email: "m.rinconz@uniandes.edu.co", phone: "3046321835" },
+    ],
+  },
+  {
+    name: "Golden Billow",
+    members: [
       { name: "Jose Melgarejo", email: "josemelro@unisabana.edu.co", phone: "3103937321" },
     ],
   },
@@ -26,7 +31,7 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
       { name: "Nelson Felipe Celis Díaz", email: "nf.celis@uniandes.edu.co", phone: "3202892762" },
       { name: "Sofia Morato Leyton", email: "s.moratol@uniandes.edu.co", phone: "3204811024" },
       { name: "Santiago Seade Rachadell", email: "s.seade@uniandes.edu.co", phone: "3188097809" },
-      { name: "Andrea Vargas Torres", email: "andreavargas32005@gmail.com", phone: "3226101753" },
+      { name: "Andrea Vargas Torres", email: "andreavargas32005@gamil.com", phone: "3226101753" },
     ],
   },
   {
@@ -79,7 +84,12 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
     members: [
       { name: "Daniela Peñuela Bernal", email: "dp133766@gmail.com", phone: "3104348306" },
       { name: "Sofia Vega Anillo", email: "s.vega11@uniandes.edu.co", phone: "3103026967" },
-      { name: "José Manuel Chanchay Herrera", email: "j.chanchaytrabajo@gmail.com", phone: "3007078566" },
+    ],
+  },
+  {
+    name: "Javeriana FCB",
+    members: [
+      { name: "José Manuel Chanchay Herrera", email: "j.chanchaytrabajo@gmail.con", phone: "3007078566" },
       { name: "Pablo Alejandro Valencia Baron", email: "pablobaron32@gmail.com", phone: "3507699271" },
     ],
   },
@@ -89,6 +99,11 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
       { name: "Manuela Siado Jaramillo", email: "m.siado@uniandes.edu.co", phone: "3152966451" },
       { name: "Sofía Hernández Bustamante", email: "sofiaherbus@gmail.com", phone: "3053795632" },
       { name: "Isabella Muñoz Ramírez", email: "isabellamunozramirez05@gmail.com", phone: "3102104325" },
+    ],
+  },
+  {
+    name: "NUEVO IMS",
+    members: [
       { name: "Sebastian Martinez Acevedo", email: "sebastian.martinez0804@gmail.com", phone: "3173124630" },
     ],
   },
@@ -134,6 +149,11 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
       { name: "carla isabella sánchez rodríguez", email: "prv.carla11@gmail.com", phone: "3152112023" },
       { name: "diego alejandro medina llanos", email: "prv.carla11@gmail.com", phone: "3152112023" },
       { name: "pedro josé molina", email: "prv.carla11@gmail.com", phone: "3152112023" },
+    ],
+  },
+  {
+    name: "NUEVA THREE MAKERS",
+    members: [
       { name: "Maria Jose Albarracin", email: "m.albarracinb@uniandes.edu.co", phone: "3053263809" },
     ],
   },
@@ -268,7 +288,7 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
     members: [
       { name: "Dennys Alejandro Lozano Mora", email: "da.lozanom1@uniandes.edu.co", phone: "3192486483" },
       { name: "Nicolas Andrés Bolaños Fernandez", email: "n.bolanosf@uniandes.edu.co", phone: "3135718293" },
-      { name: "Christian Alberto Bravo Montes", email: "ca.bravom1@uniandes.edu.co", phone: "3135428160" },
+      { name: "Christian Alberto Bravo Montes", email: "ca.bravom@uniandes.edu.co", phone: "3135428160" },
       { name: "Nicolás Fajardo Aguirre", email: "n.fajardoa@uniandes.edu.co", phone: "3194357152" },
     ],
   },
@@ -291,7 +311,7 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
     ],
   },
   {
-    name: "Bull Partners",
+    name: "The Brawl Stars",
     members: [
       { name: "Juan Diego Moreno Miranda", email: "j.morenom23@uniandes.edu.co", phone: "3028526348" },
       { name: "Salomon Gonzalez Lozada", email: "sgonzalezla3@gmail.com", phone: "3242120943" },
@@ -493,7 +513,7 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
     name: "ETS & Co.",
     members: [
       { name: "David \"El Tino (ET)\" Ramírez", email: "d.ramirezg23@uniandes.edu.co", phone: "3213651947" },
-      { name: "Esteban \"Sipilindo (S)\" Cacheo", email: "e.cacheo@uniandes.edu.co", phone: "3217869009" },
+      { name: "Esteban \"Sipilindo (S)\" Cacheo", email: "e.cacheo@unaindes.edu.co", phone: "3217869009" },
       { name: "Zhanna Angeline \"& Co.\" Uscátegui Moreno", email: "z.uscategui@uniandes.edu.co", phone: "3028669858" },
       { name: "Juan Diego \"& Co.\" Ortega Romero", email: "jd.ortega12@uniandes.edu.co", phone: "3204808054" },
     ],
@@ -762,7 +782,7 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
   {
     name: "Los inges al cubo",
     members: [
-      { name: "Brian Nicolss Guzman Orjuela", email: "bguzmano@unal.edu.co", phone: "3223588235" },
+      { name: "Samuel Elías Ureña Boniche", email: "samuel.urena@utp.ac.pa", phone: "65257249" },
       { name: "Lucía Anell", email: "lucia.anell@utp.ac.pa", phone: "66887838" },
       { name: "Luz Enciso", email: "luz.enciso@utp.ac.pa", phone: "62145815" },
       { name: "Joshua Miller", email: "joshua.miller@utp.ac.pa", phone: "63151505" },
@@ -775,6 +795,15 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
       { name: "Isabella Urdinola Hernandez", email: "i.urdinola@uniandes.edu.co", phone: "3117871747" },
       { name: "Emilio Espinosa Palacio", email: "emilio16espinosa2113@gmail.com", phone: "3232283457" },
       { name: "Nicolle Sanchez", email: "nicollesolangel@outlook.com", phone: "3134922842" },
+    ],
+  },
+  {
+    name: "BFF",
+    members: [
+      { name: "Sergio León López", email: "elserlyonyt@gmail.com", phone: "3156436377" },
+      { name: "Brian Nicolss Guzman Orjuela", email: "bguzmano@unal.edu.co", phone: "3223588235" },
+      { name: "Juan Manuel Obando", email: "elserlyonyt@gmail.com", phone: "3156436377" },
+      { name: "Samuel José Canon Gamarra", email: "samu28032008@gmail.com", phone: "3234951895" },
     ],
   },
 ];

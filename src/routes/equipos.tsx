@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search, Users, Trophy } from "lucide-react";
+import { Search, Users, Trophy, Mail, Phone } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
 import { EQUIPOS_NCC_2026 } from "@/lib/ncc/equipos-2026";
@@ -41,6 +41,7 @@ function initials(name: string) {
 
 function EquiposPage() {
   const [q, setQ] = useState("");
+  const [openMember, setOpenMember] = useState<string | null>(null);
 
   const teams = useMemo(() => {
     const query = normalize(q.trim());
@@ -48,9 +49,14 @@ function EquiposPage() {
     return EQUIPOS_NCC_2026.filter(
       (t) =>
         normalize(t.name).includes(query) ||
-        t.members.some((m) => normalize(m).includes(query)),
+        t.members.some(
+          (m) =>
+            normalize(m.name).includes(query) ||
+            normalize(m.email).includes(query),
+        ),
     );
   }, [q]);
+
 
   const totalMembers = EQUIPOS_NCC_2026.reduce(
     (a, t) => a + t.members.length,
@@ -122,18 +128,48 @@ function EquiposPage() {
                     {t.members.length}
                   </span>
                 </div>
-                <ul className="mt-4 space-y-2.5">
-                  {t.members.map((m, j) => (
-                    <li key={j} className="flex items-center gap-3">
-                      <span className="h-8 w-8 shrink-0 rounded-full bg-[var(--ncc-mint)] text-[var(--ncc-deep)] text-[11px] font-bold flex items-center justify-center">
-                        {initials(m)}
-                      </span>
-                      <span className="text-sm text-[var(--ncc-deep)]/85">
-                        {m}
-                      </span>
-                    </li>
-                  ))}
+                <ul className="mt-4 space-y-2">
+                  {t.members.map((m, j) => {
+                    const key = `${i}-${j}`;
+                    const open = openMember === key;
+                    return (
+                      <li key={j}>
+                        <button
+                          type="button"
+                          onClick={() => setOpenMember(open ? null : key)}
+                          className="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left hover:bg-[var(--ncc-mint)]/50 transition-colors"
+                          aria-expanded={open}
+                        >
+                          <span className="h-8 w-8 shrink-0 rounded-full bg-[var(--ncc-mint)] text-[var(--ncc-deep)] text-[11px] font-bold flex items-center justify-center">
+                            {initials(m.name)}
+                          </span>
+                          <span className="text-sm text-[var(--ncc-deep)]/85">
+                            {m.name}
+                          </span>
+                        </button>
+                        {open && (
+                          <div className="ml-11 mt-1 mb-1 space-y-1 rounded-lg bg-[var(--ncc-mint)]/40 px-3 py-2 text-xs text-[var(--ncc-deep)]/80">
+                            <a
+                              href={`mailto:${m.email}`}
+                              className="flex items-center gap-2 hover:underline break-all"
+                            >
+                              <Mail className="h-3.5 w-3.5 shrink-0" />
+                              {m.email}
+                            </a>
+                            <a
+                              href={`tel:${m.phone}`}
+                              className="flex items-center gap-2 hover:underline"
+                            >
+                              <Phone className="h-3.5 w-3.5 shrink-0" />
+                              {m.phone}
+                            </a>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
+
               </article>
             ))}
           </div>
