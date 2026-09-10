@@ -17,11 +17,6 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
       { name: "Ana Sofía Merchán", email: "a.merchanh@uniandes.edu.co", phone: "3154968068" },
       { name: "Susana Franco Cardozo", email: "sfrancocardozo@gmail.com", phone: "3005281280" },
       { name: "Mateo Rincón", email: "m.rinconz@uniandes.edu.co", phone: "3046321835" },
-    ],
-  },
-  {
-    name: "Golden Billow",
-    members: [
       { name: "Jose Melgarejo", email: "josemelro@unisabana.edu.co", phone: "3103937321" },
     ],
   },
@@ -84,11 +79,6 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
     members: [
       { name: "Daniela Peñuela Bernal", email: "dp133766@gmail.com", phone: "3104348306" },
       { name: "Sofia Vega Anillo", email: "s.vega11@uniandes.edu.co", phone: "3103026967" },
-    ],
-  },
-  {
-    name: "Javeriana FCB",
-    members: [
       { name: "José Manuel Chanchay Herrera", email: "j.chanchaytrabajo@gmail.con", phone: "3007078566" },
       { name: "Pablo Alejandro Valencia Baron", email: "pablobaron32@gmail.com", phone: "3507699271" },
     ],
@@ -99,11 +89,6 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
       { name: "Manuela Siado Jaramillo", email: "m.siado@uniandes.edu.co", phone: "3152966451" },
       { name: "Sofía Hernández Bustamante", email: "sofiaherbus@gmail.com", phone: "3053795632" },
       { name: "Isabella Muñoz Ramírez", email: "isabellamunozramirez05@gmail.com", phone: "3102104325" },
-    ],
-  },
-  {
-    name: "NUEVO IMS",
-    members: [
       { name: "Sebastian Martinez Acevedo", email: "sebastian.martinez0804@gmail.com", phone: "3173124630" },
     ],
   },
@@ -149,11 +134,6 @@ export const EQUIPOS_NCC_2026: EquipoNCC[] = [
       { name: "carla isabella sánchez rodríguez", email: "prv.carla11@gmail.com", phone: "3152112023" },
       { name: "diego alejandro medina llanos", email: "prv.carla11@gmail.com", phone: "3152112023" },
       { name: "pedro josé molina", email: "prv.carla11@gmail.com", phone: "3152112023" },
-    ],
-  },
-  {
-    name: "NUEVA THREE MAKERS",
-    members: [
       { name: "Maria Jose Albarracin", email: "m.albarracinb@uniandes.edu.co", phone: "3053263809" },
     ],
   },
