@@ -3,10 +3,15 @@ import { useMemo, useState } from "react";
 import { Search, Users, Trophy, Mail, Phone } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
-import { EQUIPOS_NCC_2026 } from "@/lib/ncc/equipos-2026";
+import { listRegisteredTeams } from "@/lib/ncc/registered-teams.functions";
 
 export const Route = createFileRoute("/equipos")({
   component: EquiposPage,
+  loader: () => listRegisteredTeams(),
+  errorComponent: () => (
+    <p className="p-10 text-center text-sm">No pudimos cargar los equipos.</p>
+  ),
+  notFoundComponent: () => <p className="p-10 text-center text-sm">No encontrado.</p>,
   head: () => ({
     meta: [
       { title: "Equipos inscritos — NCC 2026" },
@@ -40,13 +45,14 @@ function initials(name: string) {
 }
 
 function EquiposPage() {
+  const { teams: allTeams } = Route.useLoaderData();
   const [q, setQ] = useState("");
   const [openMember, setOpenMember] = useState<string | null>(null);
 
   const teams = useMemo(() => {
     const query = normalize(q.trim());
-    if (!query) return EQUIPOS_NCC_2026;
-    return EQUIPOS_NCC_2026.filter(
+    if (!query) return allTeams;
+    return allTeams.filter(
       (t) =>
         normalize(t.name).includes(query) ||
         t.members.some(
@@ -55,13 +61,10 @@ function EquiposPage() {
             normalize(m.email).includes(query),
         ),
     );
-  }, [q]);
+  }, [q, allTeams]);
 
 
-  const totalMembers = EQUIPOS_NCC_2026.reduce(
-    (a, t) => a + t.members.length,
-    0,
-  );
+  const totalMembers = allTeams.reduce((a, t) => a + t.members.length, 0);
 
   return (
     <div className="min-h-screen bg-[var(--ncc-cream)] flex flex-col">
@@ -79,7 +82,7 @@ function EquiposPage() {
               <div className="rounded-xl bg-white/10 border border-white/15 px-5 py-3 backdrop-blur-sm">
                 <div className="flex items-center gap-2 text-2xl font-semibold">
                   <Trophy className="h-5 w-5 opacity-80" />
-                  {EQUIPOS_NCC_2026.length}
+                  {allTeams.length}
                 </div>
                 <p className="text-xs uppercase tracking-widest opacity-75 mt-0.5">
                   Equipos
@@ -110,7 +113,7 @@ function EquiposPage() {
             />
           </div>
           <p className="mt-3 text-xs text-[var(--muted-foreground)]">
-            Mostrando {teams.length} de {EQUIPOS_NCC_2026.length} equipos
+            Mostrando {teams.length} de {allTeams.length} equipos
           </p>
 
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

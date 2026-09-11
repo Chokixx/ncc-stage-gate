@@ -28,6 +28,10 @@ import {
   adminUpdateStageContent,
   adminUploadStageFile,
   adminClearStageFile,
+  adminListRegisteredTeams,
+  adminUpsertRegisteredTeam,
+  adminDeleteRegisteredTeam,
+  adminSeedRegisteredTeams,
 } from "@/lib/ncc/admin.functions";
 import { answersToLetters, durationMinutes } from "@/lib/ncc/gmat-format";
 
@@ -145,7 +149,7 @@ function AdminPage() {
   return <AdminDashboard password={password} onLogout={onLogout} />;
 }
 
-type Tab = "sponsors" | "teams" | "stages" | "submissions";
+type Tab = "sponsors" | "teams" | "registered" | "stages" | "submissions";
 
 function AdminDashboard({
   password,
@@ -158,6 +162,7 @@ function AdminDashboard({
   const tabs: { key: Tab; label: string }[] = [
     { key: "sponsors", label: "Patrocinadores" },
     { key: "teams", label: "Equipos GMAT" },
+    { key: "registered", label: "Equipos inscritos" },
     { key: "stages", label: "Etapas" },
     { key: "submissions", label: "Resultados" },
   ];
@@ -215,6 +220,7 @@ function AdminDashboard({
         <div className="max-w-6xl mx-auto px-6 py-8">
           {tab === "sponsors" && <SponsorsAdmin password={password} />}
           {tab === "teams" && <TeamsAdmin password={password} />}
+          {tab === "registered" && <RegisteredTeamsAdmin password={password} />}
           {tab === "stages" && <StagesAdmin password={password} />}
           {tab === "submissions" && <SubmissionsAdmin password={password} />}
         </div>
@@ -1175,6 +1181,252 @@ function FileSlot({
             Quitar
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ============== EQUIPOS INSCRITOS (página /equipos) ==============
+type RegMember = { name: string; email: string; phone: string };
+type RegTeam = { id: string; position: number; name: string; members: RegMember[] };
+
+function RegisteredTeamsAdmin({ password }: { password: string }) {
+  const list = useServerFn(adminListRegisteredTeams);
+  const upsert = useServerFn(adminUpsertRegisteredTeam);
+  const remove = useServerFn(adminDeleteRegisteredTeam);
+  const seed = useServerFn(adminSeedRegisteredTeams);
+
+  const [teams, setTeams] = useState<RegTeam[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [msg, setMsg] = useState("");
+  const [editing, setEditing] = useState<RegTeam | null>(null);
+  const [q, setQ] = useState("");
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      await seed({ data: { password } });
+      const r = (await list({ data: { password } })) as { teams: RegTeam[] };
+      setTeams(
+        (r.teams ?? []).map((t) => ({
+          ...t,
+          members: Array.isArray(t.members) ? t.members : [],
+        })),
+      );
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Error al cargar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const save = async (team: RegTeam) => {
+    setMsg("");
+    try {
+      await upsert({
+        data: {
+          password,
+          ...(team.id ? { id: team.id } : {}),
+          name: team.name.trim(),
+          members: team.members
+            .filter((m) => m.name.trim())
+            .map((m) => ({
+              name: m.name.trim(),
+              email: m.email.trim(),
+              phone: m.phone.trim(),
+            })),
+        },
+      });
+      setEditing(null);
+      await load();
+      setMsg("Guardado.");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Error al guardar");
+    }
+  };
+
+  const del = async (id: string, name: string) => {
+    if (!confirm(`¿Eliminar el equipo "${name}"?`)) return;
+    try {
+      await remove({ data: { password, id } });
+      await load();
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Error al eliminar");
+    }
+  };
+
+  const filtered = teams.filter((t) => {
+    const s = q.trim().toLowerCase();
+    if (!s) return true;
+    return (
+      t.name.toLowerCase().includes(s) ||
+      t.members.some((m) => (m.name + m.email).toLowerCase().includes(s))
+    );
+  });
+
+  if (loading) return <p className="text-sm text-[var(--muted-foreground)]">Cargando…</p>;
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-serif text-2xl text-[var(--ncc-deep)]">Equipos inscritos</h2>
+          <p className="text-xs text-[var(--muted-foreground)] mt-1">
+            {teams.length} equipos ·{" "}
+            {teams.reduce((a, t) => a + t.members.length, 0)} participantes
+          </p>
+        </div>
+        <button
+          onClick={() =>
+            setEditing({ id: "", position: 0, name: "", members: [{ name: "", email: "", phone: "" }] })
+          }
+          className="inline-flex items-center gap-2 rounded-md bg-[var(--ncc-deep)] text-white px-3 py-2 text-sm"
+        >
+          <Plus className="h-4 w-4" /> Añadir equipo
+        </button>
+      </div>
+
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Buscar equipo o participante…"
+        className="w-full max-w-md rounded-md border px-3 py-2 text-sm"
+        style={{ borderColor: "#9ebcac" }}
+      />
+
+      {msg && <p className="text-sm text-[var(--ncc-deep)]">{msg}</p>}
+
+      {editing && (
+        <RegTeamForm
+          team={editing}
+          onCancel={() => setEditing(null)}
+          onSave={save}
+        />
+      )}
+
+      <div className="grid gap-3 md:grid-cols-2">
+        {filtered.map((t) => (
+          <div
+            key={t.id}
+            className="bg-white rounded-xl border border-[var(--ncc-steel)] p-4"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="font-medium text-[var(--ncc-deep)]">{t.name}</h3>
+              <div className="flex gap-1 shrink-0">
+                <button
+                  onClick={() => setEditing(t)}
+                  className="rounded-md border px-2 py-1 text-xs"
+                  style={{ borderColor: "#9ebcac" }}
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => del(t.id, t.name)}
+                  className="rounded-md border px-2 py-1 text-xs"
+                  style={{ borderColor: "#e3b5a3", color: "#b3471a" }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+            <ul className="mt-2 space-y-0.5 text-xs text-[var(--muted-foreground)]">
+              {t.members.map((m, i) => (
+                <li key={i}>
+                  {m.name} · {m.email} · {m.phone}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RegTeamForm({
+  team,
+  onCancel,
+  onSave,
+}: {
+  team: RegTeam;
+  onCancel: () => void;
+  onSave: (t: RegTeam) => void | Promise<void>;
+}) {
+  const [name, setName] = useState(team.name);
+  const [members, setMembers] = useState<RegMember[]>(
+    team.members.length ? team.members : [{ name: "", email: "", phone: "" }],
+  );
+
+  const setM = (i: number, key: keyof RegMember, value: string) =>
+    setMembers((ms) => ms.map((m, j) => (j === i ? { ...m, [key]: value } : m)));
+
+  return (
+    <div className="bg-white rounded-xl border border-[var(--ncc-steel)] p-5 space-y-3">
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Nombre del equipo"
+        className="w-full rounded-md border px-3 py-2 text-sm"
+        style={{ borderColor: "#9ebcac" }}
+      />
+      {members.map((m, i) => (
+        <div key={i} className="flex flex-wrap gap-2 items-center">
+          <input
+            value={m.name}
+            onChange={(e) => setM(i, "name", e.target.value)}
+            placeholder="Nombre"
+            className="flex-1 min-w-[160px] rounded-md border px-3 py-2 text-sm"
+            style={{ borderColor: "#9ebcac" }}
+          />
+          <input
+            value={m.email}
+            onChange={(e) => setM(i, "email", e.target.value)}
+            placeholder="Correo"
+            className="flex-1 min-w-[160px] rounded-md border px-3 py-2 text-sm"
+            style={{ borderColor: "#9ebcac" }}
+          />
+          <input
+            value={m.phone}
+            onChange={(e) => setM(i, "phone", e.target.value)}
+            placeholder="Teléfono"
+            className="w-36 rounded-md border px-3 py-2 text-sm"
+            style={{ borderColor: "#9ebcac" }}
+          />
+          <button
+            onClick={() => setMembers((ms) => ms.filter((_, j) => j !== i))}
+            className="rounded-md border px-2 py-2 text-xs"
+            style={{ borderColor: "#e3b5a3", color: "#b3471a" }}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ))}
+      <button
+        onClick={() => setMembers((ms) => [...ms, { name: "", email: "", phone: "" }])}
+        className="inline-flex items-center gap-1.5 text-xs text-[var(--ncc-deep)]"
+      >
+        <Plus className="h-3.5 w-3.5" /> Añadir integrante
+      </button>
+      <div className="flex gap-2 pt-2">
+        <button
+          onClick={() => onSave({ ...team, name, members })}
+          disabled={!name.trim()}
+          className="inline-flex items-center gap-2 rounded-md bg-[var(--ncc-deep)] text-white px-3 py-2 text-sm disabled:opacity-50"
+        >
+          <Save className="h-4 w-4" /> Guardar
+        </button>
+        <button
+          onClick={onCancel}
+          className="rounded-md border px-3 py-2 text-sm"
+          style={{ borderColor: "#9ebcac" }}
+        >
+          Cancelar
+        </button>
       </div>
     </div>
   );

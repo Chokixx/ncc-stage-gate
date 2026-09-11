@@ -77,6 +77,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ncc_registered_teams: {
+        Row: {
+          created_at: string
+          id: string
+          members: Json
+          name: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          members?: Json
+          name: string
+          position: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          members?: Json
+          name?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       registrations: {
         Row: {
           consent_url: string | null
