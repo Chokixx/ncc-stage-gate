@@ -347,3 +347,91 @@ export const adminClearStageFile = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ---------- Equipos inscritos (página pública /equipos) ----------
+const MemberSchema = z.object({
+  name: z.string().min(1).max(200),
+  email: z.string().max(200).default(""),
+  phone: z.string().max(60).default(""),
+});
+
+export const adminListRegisteredTeams = createServerFn({ method: "POST" })
+  .inputValidator((i) => z.object({ password: z.string().min(1).max(200) }).parse(i))
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    const { data: rows, error } = await supabaseAdmin
+      .from("ncc_registered_teams")
+      .select("id, position, name, members")
+      .order("position");
+    if (error) throw new Error(error.message);
+    return { teams: rows ?? [] };
+  });
+
+export const adminUpsertRegisteredTeam = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z
+      .object({
+        password: z.string().min(1).max(200),
+        id: z.string().uuid().optional(),
+        name: z.string().min(1).max(300),
+        members: z.array(MemberSchema).max(10),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    if (data.id) {
+      const { error } = await supabaseAdmin
+        .from("ncc_registered_teams")
+        .update({ name: data.name, members: data.members })
+        .eq("id", data.id);
+      if (error) throw new Error(error.message);
+      return { ok: true };
+    }
+    const { data: maxRow } = await supabaseAdmin
+      .from("ncc_registered_teams")
+      .select("position")
+      .order("position", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const { error } = await supabaseAdmin.from("ncc_registered_teams").insert({
+      position: (maxRow?.position ?? 0) + 1,
+      name: data.name,
+      members: data.members,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminDeleteRegisteredTeam = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z.object({ password: z.string().min(1).max(200), id: z.string().uuid() }).parse(i),
+  )
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    const { error } = await supabaseAdmin
+      .from("ncc_registered_teams")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminSeedRegisteredTeams = createServerFn({ method: "POST" })
+  .inputValidator((i) => z.object({ password: z.string().min(1).max(200) }).parse(i))
+  .handler(async ({ data }) => {
+    checkPassword(data.password);
+    const { count } = await supabaseAdmin
+      .from("ncc_registered_teams")
+      .select("id", { count: "exact", head: true });
+    if ((count ?? 0) > 0) return { ok: true, inserted: 0 };
+    const { EQUIPOS_NCC_2026 } = await import("@/lib/ncc/equipos-2026");
+    const rows = EQUIPOS_NCC_2026.map((t, i) => ({
+      position: i + 1,
+      name: t.name,
+      members: t.members,
+    }));
+    const { error } = await supabaseAdmin.from("ncc_registered_teams").insert(rows);
+    if (error) throw new Error(error.message);
+    return { ok: true, inserted: rows.length };
+  });
