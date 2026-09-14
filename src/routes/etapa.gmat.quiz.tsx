@@ -5,7 +5,7 @@ import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
 import {
   GMAT_QUESTIONS,
-  GMAT_DURATION_MINUTES,
+  getGmatDurationMinutes,
   GMAT_QUIZ_SIZE,
   type GmatQuestion,
 } from "@/lib/ncc/gmat-questions";
