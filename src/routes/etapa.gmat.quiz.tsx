@@ -5,7 +5,7 @@ import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
 import {
   GMAT_QUESTIONS,
-  GMAT_DURATION_MINUTES,
+  getGmatDurationMinutes,
   GMAT_QUIZ_SIZE,
   type GmatQuestion,
 } from "@/lib/ncc/gmat-questions";
@@ -108,12 +108,14 @@ function GmatQuizPage() {
     };
   }, [startedAt]);
 
+  const durationMinutes = useMemo(() => getGmatDurationMinutes(team), [team]);
+
   const endsAt = useMemo(() => {
     if (!startedAt) return null;
-    return new Date(startedAt).getTime() + GMAT_DURATION_MINUTES * 60 * 1000;
-  }, [startedAt]);
+    return new Date(startedAt).getTime() + durationMinutes * 60 * 1000;
+  }, [startedAt, durationMinutes]);
 
-  const remaining = endsAt ? endsAt - now : GMAT_DURATION_MINUTES * 60 * 1000;
+  const remaining = endsAt ? endsAt - now : durationMinutes * 60 * 1000;
 
   const submit = useCallback(
     async (auto: boolean) => {
