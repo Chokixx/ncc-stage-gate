@@ -224,4 +224,15 @@ export const GMAT_QUESTIONS: GmatQuestion[] = [
 ];
 
 export const GMAT_DURATION_MINUTES = 45;
+
+// Equipos con duración extendida (minutos), comparación sin distinguir mayúsculas.
+export const GMAT_DURATION_OVERRIDES: Record<string, number> = {
+  "uees grupo 1": 60,
+};
+
+export function getGmatDurationMinutes(team?: string | null): number {
+  if (!team) return GMAT_DURATION_MINUTES;
+  const key = team.trim().toLowerCase().replace(/\s+/g, " ");
+  return GMAT_DURATION_OVERRIDES[key] ?? GMAT_DURATION_MINUTES;
+}
 export const GMAT_QUIZ_SIZE = 20;
