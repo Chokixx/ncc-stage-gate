@@ -238,7 +238,7 @@ export const adminListStageContent = createServerFn({ method: "POST" })
     const { data: rows, error } = await supabaseAdmin
       .from("stage_content")
       .select(
-        "id, stage, intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_url, case_data_name, updated_at",
+        "id, stage, intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_enabled, case_data_url, case_data_name, updated_at",
       )
       .order("stage");
     if (error) throw new Error(error.message);
@@ -253,6 +253,7 @@ export const adminUpdateStageContent = createServerFn({ method: "POST" })
         stage: StageId,
         intro: z.string().max(5000),
         sponsor_enabled: z.boolean(),
+        case_data_enabled: z.boolean(),
         sponsor_name: z.string().max(200),
         sponsor_link: z.string().url().max(2000).nullable(),
       })
@@ -265,6 +266,7 @@ export const adminUpdateStageContent = createServerFn({ method: "POST" })
       .update({
         intro: data.intro,
         sponsor_enabled: data.sponsor_enabled,
+        case_data_enabled: data.case_data_enabled,
         sponsor_name: data.sponsor_name,
         sponsor_link: data.sponsor_link,
       })

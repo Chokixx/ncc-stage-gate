@@ -41,7 +41,7 @@ export const getStageContent = createServerFn({ method: "POST" })
     const query = supabaseAdmin.from("stage_content");
     const result = unlocked
       ? await query
-          .select("intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_name, case_data_name")
+          .select("intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_name, case_data_enabled, case_data_name")
           .eq("stage", data.stage)
           .maybeSingle()
       : await query
@@ -52,6 +52,7 @@ export const getStageContent = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     const fileNames = row as typeof row & {
       case_pdf_name?: string | null;
+      case_data_enabled?: boolean;
       case_data_name?: string | null;
     };
     return {
@@ -59,7 +60,11 @@ export const getStageContent = createServerFn({ method: "POST" })
         ? {
             ...row,
             case_pdf_available: unlocked && Boolean(fileNames.case_pdf_name),
-            case_data_available: unlocked && Boolean(fileNames.case_data_name),
+            case_data_enabled: fileNames.case_data_enabled ?? true,
+            case_data_available:
+              unlocked &&
+              (fileNames.case_data_enabled ?? true) &&
+              Boolean(fileNames.case_data_name),
           }
         : null,
       unlocked,

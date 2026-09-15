@@ -858,6 +858,7 @@ type StageRow = {
   sponsor_link: string | null;
   case_pdf_url: string | null;
   case_pdf_name: string | null;
+  case_data_enabled: boolean;
   case_data_url: string | null;
   case_data_name: string | null;
 };
@@ -902,13 +903,14 @@ function StagesAdmin({ password }: { password: string }) {
         <StageCard
           key={s.id}
           row={s}
-          onSave={async (intro, sponsor_enabled, sponsor_name, sponsor_link) => {
+          onSave={async (intro, sponsor_enabled, case_data_enabled, sponsor_name, sponsor_link) => {
             await update({
               data: {
                 password,
                 stage: s.stage,
                 intro,
                 sponsor_enabled,
+                case_data_enabled,
                 sponsor_name,
                 sponsor_link: sponsor_link || null,
               },
@@ -952,12 +954,13 @@ function StageCard({
   onClear,
 }: {
   row: StageRow;
-  onSave: (intro: string, sponsorEnabled: boolean, sponsorName: string, sponsorLink: string) => Promise<void>;
+  onSave: (intro: string, sponsorEnabled: boolean, caseDataEnabled: boolean, sponsorName: string, sponsorLink: string) => Promise<void>;
   onUpload: (kind: FileKind, file: File) => Promise<void>;
   onClear: (kind: FileKind) => Promise<void>;
 }) {
   const [intro, setIntro] = useState(row.intro);
   const [sponsorEnabled, setSponsorEnabled] = useState(row.sponsor_enabled);
+  const [caseDataEnabled, setCaseDataEnabled] = useState(row.case_data_enabled);
   const [sponsorName, setSponsorName] = useState(row.sponsor_name);
   const [sponsorLink, setSponsorLink] = useState(row.sponsor_link ?? "");
   const [busy, setBusy] = useState(false);
@@ -965,13 +968,15 @@ function StageCard({
   useEffect(() => {
     setIntro(row.intro);
     setSponsorEnabled(row.sponsor_enabled);
+    setCaseDataEnabled(row.case_data_enabled);
     setSponsorName(row.sponsor_name);
     setSponsorLink(row.sponsor_link ?? "");
-  }, [row.id, row.intro, row.sponsor_enabled, row.sponsor_name, row.sponsor_link]);
+  }, [row.id, row.intro, row.sponsor_enabled, row.case_data_enabled, row.sponsor_name, row.sponsor_link]);
 
   const dirty =
     intro !== row.intro ||
     sponsorEnabled !== row.sponsor_enabled ||
+    caseDataEnabled !== row.case_data_enabled ||
     sponsorName !== row.sponsor_name ||
     (sponsorLink || "") !== (row.sponsor_link ?? "");
 
@@ -1087,9 +1092,20 @@ function StageCard({
 
         {/* Case files */}
         <div className="border border-[var(--ncc-steel)] rounded-lg p-4">
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium mb-3">
-            Archivos del caso
-          </p>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium">
+              Archivos del caso
+            </p>
+            <label className="inline-flex items-center gap-2 text-xs text-[var(--ncc-deep)] cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={caseDataEnabled}
+                onChange={(e) => setCaseDataEnabled(e.target.checked)}
+                className="h-4 w-4 accent-[var(--ncc-deep)]"
+              />
+              {caseDataEnabled ? "Base visible" : "Base oculta"}
+            </label>
+          </div>
           <div className="space-y-3">
             <FileSlot
               label="Brief / PDF del caso"
@@ -1127,7 +1143,7 @@ function StageCard({
         <button
           disabled={!dirty || busy}
           onClick={() =>
-            void wrap(() => onSave(intro, sponsorEnabled, sponsorName, sponsorLink))
+            void wrap(() => onSave(intro, sponsorEnabled, caseDataEnabled, sponsorName, sponsorLink))
           }
           className="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-[var(--ncc-deep)] text-white disabled:opacity-40"
         >
