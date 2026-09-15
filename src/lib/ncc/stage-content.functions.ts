@@ -24,7 +24,7 @@ function passwordFor(stage: Stage): string | undefined {
 
 const PUBLIC_COLUMNS =
   "intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link";
-const ALL_COLUMNS = `${PUBLIC_COLUMNS}, case_pdf_url, case_pdf_name, case_data_url, case_data_name`;
+const ALL_COLUMNS = `${PUBLIC_COLUMNS}, case_pdf_name, case_data_name`;
 
 export const getStageContent = createServerFn({ method: "POST" })
   .inputValidator((i) =>
@@ -46,7 +46,16 @@ export const getStageContent = createServerFn({ method: "POST" })
       .eq("stage", data.stage)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return { content: row ?? null, unlocked };
+    return {
+      content: row
+        ? {
+            ...row,
+            case_pdf_available: unlocked && Boolean(row.case_pdf_name),
+            case_data_available: unlocked && Boolean(row.case_data_name),
+          }
+        : null,
+      unlocked,
+    };
   });
 
 export const verifyStagePassword = createServerFn({ method: "POST" })
