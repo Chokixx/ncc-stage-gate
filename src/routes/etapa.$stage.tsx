@@ -81,6 +81,55 @@ function StagePage() {
   const [downloadEmail, setDownloadEmail] = useState("");
   const [downloadName, setDownloadName] = useState("");
   const [downloadTeam, setDownloadTeam] = useState("");
+  const [upTeam, setUpTeam] = useState("");
+  const [upName, setUpName] = useState("");
+  const [upEmail, setUpEmail] = useState("");
+  const [upPdf, setUpPdf] = useState<File | null>(null);
+  const [upData, setUpData] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [uploadDone, setUploadDone] = useState(false);
+
+  const submitCase = async () => {
+    setUploadError("");
+    const email = upEmail.trim().toLowerCase();
+    if (!upTeam.trim()) return setUploadError("Ingresa el nombre de tu equipo.");
+    if (upName.trim().length < 3) return setUploadError("Ingresa tu nombre completo.");
+    if (!/^\S+@\S+\.\S+$/.test(email)) return setUploadError("Ingresa un correo válido.");
+    if (!upPdf) return setUploadError("Adjunta el caso resuelto en PDF.");
+    if (upPdf.type !== "application/pdf") return setUploadError("El caso debe ser un archivo PDF.");
+    const limit = 20 * 1024 * 1024;
+    if (upPdf.size > limit || (upData && upData.size > limit))
+      return setUploadError("Cada archivo debe pesar menos de 20 MB.");
+    const password = localStorage.getItem(`ncc_${stageId}_password`);
+    if (!password) {
+      navigate({ to: "/", hash: stageId });
+      return;
+    }
+    setUploading(true);
+    try {
+      await submitCaseFiles({
+        data: {
+          stage: stageId,
+          password,
+          team: upTeam.trim(),
+          fullName: upName.trim(),
+          email,
+          pdf: await fileToBase64(upPdf),
+          data: upData ? await fileToBase64(upData) : null,
+        },
+      });
+      setUploadDone(true);
+      setUpPdf(null);
+      setUpData(null);
+    } catch (error) {
+      setUploadError(
+        error instanceof Error ? error.message : "No se pudo enviar la entrega.",
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const stageId = stage as StageId;
   const config = STAGE_CONFIG[stageId];
