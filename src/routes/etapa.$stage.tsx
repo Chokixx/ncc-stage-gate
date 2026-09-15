@@ -1,10 +1,24 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Download, FileText, ExternalLink } from "lucide-react";
+import { ArrowLeft, Download, FileText, ExternalLink, Upload, CheckCircle2 } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
 import { Button } from "@/components/ui/button";
 import { getStageContent } from "@/lib/ncc/stage-content.functions";
+import { submitCaseFiles } from "@/lib/ncc/submission.functions";
+
+async function fileToBase64(file: File) {
+  const buffer = new Uint8Array(await file.arrayBuffer());
+  let binary = "";
+  for (let i = 0; i < buffer.length; i += 8192) {
+    binary += String.fromCharCode(...buffer.subarray(i, i + 8192));
+  }
+  return {
+    filename: file.name,
+    contentType: file.type || "application/octet-stream",
+    base64: btoa(binary),
+  };
+}
 
 type StageId = "alpha" | "beta" | "delta";
 
@@ -67,6 +81,55 @@ function StagePage() {
   const [downloadEmail, setDownloadEmail] = useState("");
   const [downloadName, setDownloadName] = useState("");
   const [downloadTeam, setDownloadTeam] = useState("");
+  const [upTeam, setUpTeam] = useState("");
+  const [upName, setUpName] = useState("");
+  const [upEmail, setUpEmail] = useState("");
+  const [upPdf, setUpPdf] = useState<File | null>(null);
+  const [upData, setUpData] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [uploadDone, setUploadDone] = useState(false);
+
+  const submitCase = async () => {
+    setUploadError("");
+    const email = upEmail.trim().toLowerCase();
+    if (!upTeam.trim()) return setUploadError("Ingresa el nombre de tu equipo.");
+    if (upName.trim().length < 3) return setUploadError("Ingresa tu nombre completo.");
+    if (!/^\S+@\S+\.\S+$/.test(email)) return setUploadError("Ingresa un correo válido.");
+    if (!upPdf) return setUploadError("Adjunta el caso resuelto en PDF.");
+    if (upPdf.type !== "application/pdf") return setUploadError("El caso debe ser un archivo PDF.");
+    const limit = 20 * 1024 * 1024;
+    if (upPdf.size > limit || (upData && upData.size > limit))
+      return setUploadError("Cada archivo debe pesar menos de 20 MB.");
+    const password = localStorage.getItem(`ncc_${stageId}_password`);
+    if (!password) {
+      navigate({ to: "/", hash: stageId });
+      return;
+    }
+    setUploading(true);
+    try {
+      await submitCaseFiles({
+        data: {
+          stage: stageId,
+          password,
+          team: upTeam.trim(),
+          fullName: upName.trim(),
+          email,
+          pdf: await fileToBase64(upPdf),
+          data: upData ? await fileToBase64(upData) : null,
+        },
+      });
+      setUploadDone(true);
+      setUpPdf(null);
+      setUpData(null);
+    } catch (error) {
+      setUploadError(
+        error instanceof Error ? error.message : "No se pudo enviar la entrega.",
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const stageId = stage as StageId;
   const config = STAGE_CONFIG[stageId];
@@ -390,6 +453,123 @@ function StagePage() {
                   {downloadError}
                 </p>
               )}
+            </div>
+
+            {/* Entrega del caso */}
+            <div className="mt-12">
+              <h3 className="font-serif text-2xl md:text-3xl text-[var(--ncc-deep)]">
+                Entrega del caso
+              </h3>
+              <p className="text-sm text-[var(--muted-foreground)] mt-2">
+                Sube aquí la solución de tu equipo. El PDF es obligatorio; el archivo de Excel es
+                opcional.
+              </p>
+
+              <div className="mt-5 bg-white rounded-xl border border-[var(--ncc-steel)] p-6 md:p-8 max-w-2xl">
+                {uploadDone ? (
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="h-6 w-6 text-[var(--ncc-deep)] shrink-0" />
+                    <div>
+                      <p className="font-medium text-[var(--ncc-deep)]">Entrega recibida</p>
+                      <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                        Tu entrega quedó registrada correctamente.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-4 border-[var(--ncc-steel)]"
+                        onClick={() => setUploadDone(false)}
+                      >
+                        Enviar otra entrega
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    <div>
+                      <label htmlFor="up-team" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                        Equipo
+                      </label>
+                      <input
+                        id="up-team"
+                        type="text"
+                        value={upTeam}
+                        onChange={(e) => setUpTeam(e.target.value)}
+                        placeholder="Nombre del equipo"
+                        maxLength={120}
+                        className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="up-name" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                        Nombre completo
+                      </label>
+                      <input
+                        id="up-name"
+                        type="text"
+                        value={upName}
+                        onChange={(e) => setUpName(e.target.value)}
+                        placeholder="Nombre y apellido"
+                        maxLength={120}
+                        className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="up-email" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                        Correo electrónico
+                      </label>
+                      <input
+                        id="up-email"
+                        type="email"
+                        value={upEmail}
+                        onChange={(e) => setUpEmail(e.target.value)}
+                        placeholder="nombre@correo.com"
+                        maxLength={254}
+                        className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="up-pdf" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                        Caso resuelto (PDF)
+                      </label>
+                      <input
+                        id="up-pdf"
+                        type="file"
+                        accept="application/pdf"
+                        onChange={(e) => setUpPdf(e.target.files?.[0] ?? null)}
+                        className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="up-data" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                        Archivo de Excel (opcional)
+                      </label>
+                      <input
+                        id="up-data"
+                        type="file"
+                        accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                        onChange={(e) => setUpData(e.target.files?.[0] ?? null)}
+                        className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => void submitCase()}
+                      disabled={uploading}
+                      className="bg-[var(--ncc-deep)] text-primary-foreground hover:opacity-90 w-full sm:w-auto"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {uploading ? "Enviando…" : "Enviar entrega"}
+                    </Button>
+                    {uploadError && (
+                      <p className="text-sm text-destructive" role="alert">
+                        {uploadError}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </section>
