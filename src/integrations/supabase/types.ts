@@ -169,6 +169,7 @@ export type Database = {
       }
       stage_content: {
         Row: {
+          case_data_enabled: boolean
           case_data_name: string | null
           case_data_url: string | null
           case_pdf_name: string | null
@@ -184,6 +185,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          case_data_enabled?: boolean
           case_data_name?: string | null
           case_data_url?: string | null
           case_pdf_name?: string | null
@@ -199,6 +201,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          case_data_enabled?: boolean
           case_data_name?: string | null
           case_data_url?: string | null
           case_pdf_name?: string | null
