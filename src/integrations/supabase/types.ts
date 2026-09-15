@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      download_receipts: {
+        Row: {
+          code: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          ip: string | null
+          kind: string
+          stage: string
+          team: string
+          user_agent: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          ip?: string | null
+          kind: string
+          stage: string
+          team: string
+          user_agent?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          ip?: string | null
+          kind?: string
+          stage?: string
+          team?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       gmat_submissions: {
         Row: {
           answers: Json
