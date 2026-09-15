@@ -45,7 +45,7 @@ async function watermarkWorkbook(source: Uint8Array) {
     "@/lib/ncc/watermark-image.server"
   );
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(source.buffer.slice(source.byteOffset, source.byteOffset + source.byteLength));
+  await workbook.xlsx.load(Buffer.from(source));
   const imageId = workbook.addImage({
     base64: WATERMARK_PNG_BASE64,
     extension: "png",
@@ -53,11 +53,7 @@ async function watermarkWorkbook(source: Uint8Array) {
   workbook.eachSheet((sheet) => {
     const lastRow = Math.max(sheet.rowCount, 35);
     const lastColumn = Math.max(sheet.columnCount, 12);
-    sheet.addImage(imageId, {
-      tl: { col: 0, row: 0 },
-      br: { col: lastColumn, row: lastRow },
-      editAs: "absolute",
-    });
+    sheet.addImage(imageId, `A1:${sheet.getColumn(lastColumn).letter}${lastRow}`);
     sheet.headerFooter.oddHeader = `&C&14&B${WATERMARK_TEXT}`;
     sheet.headerFooter.oddFooter = `&C${WATERMARK_TEXT}`;
   });
@@ -92,23 +88,33 @@ export const Route = createFileRoute("/api/public/stage-download")({
           const admin = createClient(url, key, {
             auth: { persistSession: false, autoRefreshToken: false },
           });
-          const urlColumn = `${parsed.data.kind}_url` as const;
-          const nameColumn = `${parsed.data.kind}_name` as const;
-          const { data: row, error } = await admin
-            .from("stage_content")
-            .select(`${urlColumn}, ${nameColumn}`)
-            .eq("stage", parsed.data.stage)
-            .maybeSingle();
-          if (error || !row?.[urlColumn]) {
+          const result = parsed.data.kind === "case_pdf"
+            ? await admin
+                .from("stage_content")
+                .select("case_pdf_url, case_pdf_name")
+                .eq("stage", parsed.data.stage)
+                .maybeSingle()
+            : await admin
+                .from("stage_content")
+                .select("case_data_url, case_data_name")
+                .eq("stage", parsed.data.stage)
+                .maybeSingle();
+          const fileUrl = parsed.data.kind === "case_pdf"
+            ? result.data?.case_pdf_url
+            : result.data?.case_data_url;
+          const fileName = parsed.data.kind === "case_pdf"
+            ? result.data?.case_pdf_name
+            : result.data?.case_data_name;
+          if (result.error || !fileUrl) {
             return Response.json({ error: "Archivo no disponible" }, { status: 404 });
           }
 
-          const original = await fetch(String(row[urlColumn]));
+          const original = await fetch(fileUrl);
           if (!original.ok) {
             return Response.json({ error: "No se pudo obtener el archivo" }, { status: 502 });
           }
           const source = new Uint8Array(await original.arrayBuffer());
-          const filename = safeFilename(String(row[nameColumn] ?? "archivo"));
+          const filename = safeFilename(fileName ?? "archivo");
           const extension = filename.split(".").pop()?.toLowerCase() ?? "";
           let output: Uint8Array;
           let contentType = original.headers.get("content-type") ?? "application/octet-stream";
