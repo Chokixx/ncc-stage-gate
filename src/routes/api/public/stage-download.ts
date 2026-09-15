@@ -184,6 +184,12 @@ export const Route = createFileRoute("/api/public/stage-download")({
             );
           }
 
+          const ip =
+            request.headers.get("cf-connecting-ip") ??
+            request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+            null;
+          const userAgent = request.headers.get("user-agent");
+
           await admin.from("download_receipts").insert({
             code,
             stage: parsed.data.stage,
@@ -191,12 +197,26 @@ export const Route = createFileRoute("/api/public/stage-download")({
             full_name: parsed.data.fullName,
             team: parsed.data.team,
             email: parsed.data.email,
-            ip:
-              request.headers.get("cf-connecting-ip") ??
-              request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-              null,
-            user_agent: request.headers.get("user-agent"),
+            ip,
+            user_agent: userAgent,
           });
+
+          try {
+            const { appendDownloadRow } = await import("@/lib/ncc/download-sheets.server");
+            await appendDownloadRow({
+              stage: parsed.data.stage,
+              kind: parsed.data.kind,
+              team: parsed.data.team,
+              fullName: parsed.data.fullName,
+              email: parsed.data.email,
+              code,
+              fileName: filename,
+              ip,
+              userAgent,
+            });
+          } catch (sheetError) {
+            console.error("[stage-download][sheets]", sheetError);
+          }
 
           return new Response(output as BodyInit, {
             headers: {
