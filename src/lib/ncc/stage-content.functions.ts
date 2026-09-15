@@ -24,8 +24,6 @@ function passwordFor(stage: Stage): string | undefined {
 
 const PUBLIC_COLUMNS =
   "intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link";
-const ALL_COLUMNS = `${PUBLIC_COLUMNS}, case_pdf_url, case_pdf_name, case_data_url, case_data_name`;
-
 export const getStageContent = createServerFn({ method: "POST" })
   .inputValidator((i) =>
     z
@@ -40,13 +38,32 @@ export const getStageContent = createServerFn({ method: "POST" })
     const unlocked =
       !!expected && !!data.password && data.password === expected;
 
-    const { data: row, error } = await supabaseAdmin
-      .from("stage_content")
-      .select(unlocked ? ALL_COLUMNS : PUBLIC_COLUMNS)
-      .eq("stage", data.stage)
-      .maybeSingle();
+    const query = supabaseAdmin.from("stage_content");
+    const result = unlocked
+      ? await query
+          .select("intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_name, case_data_name")
+          .eq("stage", data.stage)
+          .maybeSingle()
+      : await query
+          .select(PUBLIC_COLUMNS)
+          .eq("stage", data.stage)
+          .maybeSingle();
+    const { data: row, error } = result;
     if (error) throw new Error(error.message);
-    return { content: row ?? null, unlocked };
+    const fileNames = row as typeof row & {
+      case_pdf_name?: string | null;
+      case_data_name?: string | null;
+    };
+    return {
+      content: row
+        ? {
+            ...row,
+            case_pdf_available: unlocked && Boolean(fileNames.case_pdf_name),
+            case_data_available: unlocked && Boolean(fileNames.case_data_name),
+          }
+        : null,
+      unlocked,
+    };
   });
 
 export const verifyStagePassword = createServerFn({ method: "POST" })

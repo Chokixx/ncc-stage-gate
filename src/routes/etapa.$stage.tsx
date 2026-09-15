@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Download, FileText, ExternalLink } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
+import { Button } from "@/components/ui/button";
 import { getStageContent } from "@/lib/ncc/stage-content.functions";
 
 type StageId = "alpha" | "beta" | "delta";
@@ -35,6 +36,10 @@ export const Route = createFileRoute("/etapa/$stage")({
     meta: [
       { title: "Etapa — National Case Competition" },
       { name: "description", content: "Contenido y descargables de la etapa." },
+      { property: "og:title", content: "Etapa — National Case Competition" },
+      { property: "og:description", content: "Contenido y descargables protegidos de la etapa." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });
@@ -45,9 +50,9 @@ type StageContent = {
   sponsor_name: string;
   sponsor_logo_url: string | null;
   sponsor_link: string | null;
-  case_pdf_url: string | null;
+  case_pdf_available: boolean;
   case_pdf_name: string | null;
-  case_data_url: string | null;
+  case_data_available: boolean;
   case_data_name: string | null;
 };
 
@@ -56,6 +61,8 @@ function StagePage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
   const [content, setContent] = useState<StageContent | null>(null);
+  const [downloading, setDownloading] = useState<"case_pdf" | "case_data" | null>(null);
+  const [downloadError, setDownloadError] = useState("");
 
   const stageId = stage as StageId;
   const config = STAGE_CONFIG[stageId];
@@ -88,13 +95,46 @@ function StagePage() {
         sponsor_name: c.sponsor_name ?? "",
         sponsor_logo_url: c.sponsor_logo_url ?? null,
         sponsor_link: c.sponsor_link ?? null,
-        case_pdf_url: c.case_pdf_url ?? null,
+        case_pdf_available: c.case_pdf_available ?? false,
         case_pdf_name: c.case_pdf_name ?? null,
-        case_data_url: c.case_data_url ?? null,
+        case_data_available: c.case_data_available ?? false,
         case_data_name: c.case_data_name ?? null,
       });
     });
   }, [stageId, config, navigate]);
+
+  const downloadFile = async (kind: "case_pdf" | "case_data", filename: string) => {
+    const password = localStorage.getItem(`ncc_${stageId}_password`);
+    if (!password) {
+      navigate({ to: "/", hash: stageId });
+      return;
+    }
+    setDownloading(kind);
+    setDownloadError("");
+    try {
+      const response = await fetch("/api/public/stage-download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stage: stageId, kind, password }),
+      });
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(result?.error ?? "No se pudo preparar la descarga.");
+      }
+      const objectUrl = URL.createObjectURL(await response.blob());
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      setDownloadError(error instanceof Error ? error.message : "No se pudo preparar la descarga.");
+    } finally {
+      setDownloading(null);
+    }
+  };
 
   if (!ready || !config) {
     return (
@@ -212,13 +252,15 @@ function StagePage() {
                 {[
                   {
                     title: "Brief del caso (PDF)",
-                    url: content?.case_pdf_url,
+                    available: content?.case_pdf_available,
                     name: content?.case_pdf_name,
+                    kind: "case_pdf" as const,
                   },
                   {
                     title: "Base de datos del caso",
-                    url: content?.case_data_url,
+                    available: content?.case_data_available,
                     name: content?.case_data_name,
+                    kind: "case_data" as const,
                   },
                 ].map((item) => (
                   <div
@@ -237,35 +279,43 @@ function StagePage() {
                           {item.title}
                         </p>
                         <p className="text-xs text-[var(--muted-foreground)] truncate">
-                          {item.url
+                          {item.available
                             ? (item.name ?? "Archivo disponible")
                             : "Disponible próximamente"}
                         </p>
                       </div>
                     </div>
-                    {item.url ? (
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download
-                        className="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-md bg-[var(--ncc-deep)] text-white hover:opacity-90"
+                    {item.available ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => void downloadFile(item.kind, item.name ?? "archivo")}
+                        disabled={downloading !== null}
+                        className="bg-[var(--ncc-deep)] text-primary-foreground hover:opacity-90"
                       >
                         <Download className="h-3.5 w-3.5" />
-                        Descargar
-                      </a>
+                        {downloading === item.kind ? "Preparando…" : "Descargar"}
+                      </Button>
                     ) : (
-                      <button
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
                         disabled
-                        className="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-md border border-[var(--ncc-steel)] text-[var(--muted-foreground)] cursor-not-allowed opacity-60"
+                        className="border-[var(--ncc-steel)] text-[var(--muted-foreground)]"
                       >
                         <Download className="h-3.5 w-3.5" />
                         Descargar
-                      </button>
+                      </Button>
                     )}
                   </div>
                 ))}
               </div>
+              {downloadError && (
+                <p className="mt-4 text-sm text-destructive" role="alert">
+                  {downloadError}
+                </p>
+              )}
             </div>
           </div>
         </section>
