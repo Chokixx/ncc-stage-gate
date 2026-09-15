@@ -171,7 +171,8 @@ export async function validateProtectedPdf(bytes: Uint8Array) {
     if (catalog.get(PDFName.of(key))) throw new Error(`El archivo protegido conserva ${key}.`);
   }
   document.getPages().forEach((page, index) => {
-    if (page.node.get(PDFName.of("Annots"))) {
+    const annots = page.node.Annots();
+    if (annots && annots.size() > 0) {
       throw new Error(`La página ${index + 1} conserva anotaciones.`);
     }
     const resources = pageResources(page);
