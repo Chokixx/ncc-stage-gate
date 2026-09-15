@@ -36,6 +36,10 @@ export const Route = createFileRoute("/etapa/$stage")({
     meta: [
       { title: "Etapa — National Case Competition" },
       { name: "description", content: "Contenido y descargables de la etapa." },
+      { property: "og:title", content: "Etapa — National Case Competition" },
+      { property: "og:description", content: "Contenido y descargables protegidos de la etapa." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });
