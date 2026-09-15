@@ -110,8 +110,18 @@ function StagePage() {
 
   const downloadFile = async (kind: "case_pdf" | "case_data", filename: string) => {
     const email = downloadEmail.trim().toLowerCase();
+    const fullName = downloadName.trim();
+    const team = downloadTeam.trim();
     if (!/^\S+@\S+\.\S+$/.test(email) || email.length > 254) {
       setDownloadError("Ingresa un correo electrónico válido para descargar.");
+      return;
+    }
+    if (fullName.length < 3) {
+      setDownloadError("Ingresa tu nombre completo para descargar.");
+      return;
+    }
+    if (!team) {
+      setDownloadError("Ingresa el nombre de tu equipo para descargar.");
       return;
     }
     const password = localStorage.getItem(`ncc_${stageId}_password`);
