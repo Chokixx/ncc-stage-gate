@@ -135,7 +135,7 @@ function StagePage() {
       const response = await fetch("/api/public/stage-download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stage: stageId, kind, password, email }),
+        body: JSON.stringify({ stage: stageId, kind, password, email, fullName, team }),
       });
       if (!response.ok) {
         const result = (await response.json().catch(() => null)) as { error?: string } | null;
