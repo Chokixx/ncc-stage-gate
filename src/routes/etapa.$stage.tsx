@@ -65,6 +65,8 @@ function StagePage() {
   const [downloading, setDownloading] = useState<"case_pdf" | "case_data" | null>(null);
   const [downloadError, setDownloadError] = useState("");
   const [downloadEmail, setDownloadEmail] = useState("");
+  const [downloadName, setDownloadName] = useState("");
+  const [downloadTeam, setDownloadTeam] = useState("");
 
   const stageId = stage as StageId;
   const config = STAGE_CONFIG[stageId];
