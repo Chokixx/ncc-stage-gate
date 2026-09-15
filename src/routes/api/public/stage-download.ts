@@ -45,7 +45,7 @@ async function watermarkWorkbook(source: Uint8Array) {
     "@/lib/ncc/watermark-image.server"
   );
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(Buffer.from(source));
+  await workbook.xlsx.load(source as never);
   const imageId = workbook.addImage({
     base64: WATERMARK_PNG_BASE64,
     extension: "png",
@@ -88,24 +88,29 @@ export const Route = createFileRoute("/api/public/stage-download")({
           const admin = createClient(url, key, {
             auth: { persistSession: false, autoRefreshToken: false },
           });
-          const result = parsed.data.kind === "case_pdf"
-            ? await admin
+          let fileUrl: string | null = null;
+          let fileName: string | null = null;
+          let fileError: unknown = null;
+          if (parsed.data.kind === "case_pdf") {
+            const result = await admin
                 .from("stage_content")
                 .select("case_pdf_url, case_pdf_name")
                 .eq("stage", parsed.data.stage)
-                .maybeSingle()
-            : await admin
+                .maybeSingle();
+            fileUrl = result.data?.case_pdf_url ?? null;
+            fileName = result.data?.case_pdf_name ?? null;
+            fileError = result.error;
+          } else {
+            const result = await admin
                 .from("stage_content")
                 .select("case_data_url, case_data_name")
                 .eq("stage", parsed.data.stage)
                 .maybeSingle();
-          const fileUrl = parsed.data.kind === "case_pdf"
-            ? result.data?.case_pdf_url
-            : result.data?.case_data_url;
-          const fileName = parsed.data.kind === "case_pdf"
-            ? result.data?.case_pdf_name
-            : result.data?.case_data_name;
-          if (result.error || !fileUrl) {
+            fileUrl = result.data?.case_data_url ?? null;
+            fileName = result.data?.case_data_name ?? null;
+            fileError = result.error;
+          }
+          if (fileError || !fileUrl) {
             return Response.json({ error: "Archivo no disponible" }, { status: 404 });
           }
 
