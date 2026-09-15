@@ -933,7 +933,10 @@ function StagesAdmin({ password }: { password: string }) {
                 stage: s.stage,
                 kind,
                 filename: file.name,
-                contentType: file.type || "application/octet-stream",
+                contentType:
+                  kind === "case_pdf"
+                    ? "application/pdf"
+                    : file.type || "application/octet-stream",
                 base64,
               },
             });
