@@ -454,6 +454,123 @@ function StagePage() {
                 </p>
               )}
             </div>
+
+            {/* Entrega del caso */}
+            <div className="mt-12">
+              <h3 className="font-serif text-2xl md:text-3xl text-[var(--ncc-deep)]">
+                Entrega del caso
+              </h3>
+              <p className="text-sm text-[var(--muted-foreground)] mt-2">
+                Sube aquí la solución de tu equipo. El PDF es obligatorio; el archivo de Excel es
+                opcional.
+              </p>
+
+              <div className="mt-5 bg-white rounded-xl border border-[var(--ncc-steel)] p-6 md:p-8 max-w-2xl">
+                {uploadDone ? (
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="h-6 w-6 text-[var(--ncc-deep)] shrink-0" />
+                    <div>
+                      <p className="font-medium text-[var(--ncc-deep)]">Entrega recibida</p>
+                      <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                        Tu entrega quedó registrada correctamente.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-4 border-[var(--ncc-steel)]"
+                        onClick={() => setUploadDone(false)}
+                      >
+                        Enviar otra entrega
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    <div>
+                      <label htmlFor="up-team" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                        Equipo
+                      </label>
+                      <input
+                        id="up-team"
+                        type="text"
+                        value={upTeam}
+                        onChange={(e) => setUpTeam(e.target.value)}
+                        placeholder="Nombre del equipo"
+                        maxLength={120}
+                        className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="up-name" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                        Nombre completo
+                      </label>
+                      <input
+                        id="up-name"
+                        type="text"
+                        value={upName}
+                        onChange={(e) => setUpName(e.target.value)}
+                        placeholder="Nombre y apellido"
+                        maxLength={120}
+                        className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="up-email" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                        Correo electrónico
+                      </label>
+                      <input
+                        id="up-email"
+                        type="email"
+                        value={upEmail}
+                        onChange={(e) => setUpEmail(e.target.value)}
+                        placeholder="nombre@correo.com"
+                        maxLength={254}
+                        className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="up-pdf" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                        Caso resuelto (PDF)
+                      </label>
+                      <input
+                        id="up-pdf"
+                        type="file"
+                        accept="application/pdf"
+                        onChange={(e) => setUpPdf(e.target.files?.[0] ?? null)}
+                        className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="up-data" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                        Archivo de Excel (opcional)
+                      </label>
+                      <input
+                        id="up-data"
+                        type="file"
+                        accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                        onChange={(e) => setUpData(e.target.files?.[0] ?? null)}
+                        className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => void submitCase()}
+                      disabled={uploading}
+                      className="bg-[var(--ncc-deep)] text-primary-foreground hover:opacity-90 w-full sm:w-auto"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {uploading ? "Enviando…" : "Enviar entrega"}
+                    </Button>
+                    {uploadError && (
+                      <p className="text-sm text-destructive" role="alert">
+                        {uploadError}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </section>
       </main>
