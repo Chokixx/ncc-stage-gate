@@ -1,10 +1,24 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Download, FileText, ExternalLink } from "lucide-react";
+import { ArrowLeft, Download, FileText, ExternalLink, Upload, CheckCircle2 } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
 import { Button } from "@/components/ui/button";
 import { getStageContent } from "@/lib/ncc/stage-content.functions";
+import { submitCaseFiles } from "@/lib/ncc/submission.functions";
+
+async function fileToBase64(file: File) {
+  const buffer = new Uint8Array(await file.arrayBuffer());
+  let binary = "";
+  for (let i = 0; i < buffer.length; i += 8192) {
+    binary += String.fromCharCode(...buffer.subarray(i, i + 8192));
+  }
+  return {
+    filename: file.name,
+    contentType: file.type || "application/octet-stream",
+    base64: btoa(binary),
+  };
+}
 
 type StageId = "alpha" | "beta" | "delta";
 
