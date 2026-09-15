@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as EtapaGmatRouteImport } from './routes/etapa.gmat'
 import { Route as EtapaStageRouteImport } from './routes/etapa.$stage'
 import { Route as EtapaGmatQuizRouteImport } from './routes/etapa.gmat.quiz'
+import { Route as ApiPublicStageDownloadRouteImport } from './routes/api/public/stage-download'
 import { Route as ApiPublicGmatSubmitRouteImport } from './routes/api/public/gmat/submit'
 import { Route as ApiPublicGmatCheckRouteImport } from './routes/api/public/gmat/check'
 
@@ -48,6 +49,11 @@ const EtapaGmatQuizRoute = EtapaGmatQuizRouteImport.update({
   path: '/quiz',
   getParentRoute: () => EtapaGmatRoute,
 } as any)
+const ApiPublicStageDownloadRoute = ApiPublicStageDownloadRouteImport.update({
+  id: '/api/public/stage-download',
+  path: '/api/public/stage-download',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicGmatSubmitRoute = ApiPublicGmatSubmitRouteImport.update({
   id: '/api/public/gmat/submit',
   path: '/api/public/gmat/submit',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/equipos': typeof EquiposRoute
   '/etapa/$stage': typeof EtapaStageRoute
   '/etapa/gmat': typeof EtapaGmatRouteWithChildren
+  '/api/public/stage-download': typeof ApiPublicStageDownloadRoute
   '/etapa/gmat/quiz': typeof EtapaGmatQuizRoute
   '/api/public/gmat/check': typeof ApiPublicGmatCheckRoute
   '/api/public/gmat/submit': typeof ApiPublicGmatSubmitRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/equipos': typeof EquiposRoute
   '/etapa/$stage': typeof EtapaStageRoute
   '/etapa/gmat': typeof EtapaGmatRouteWithChildren
+  '/api/public/stage-download': typeof ApiPublicStageDownloadRoute
   '/etapa/gmat/quiz': typeof EtapaGmatQuizRoute
   '/api/public/gmat/check': typeof ApiPublicGmatCheckRoute
   '/api/public/gmat/submit': typeof ApiPublicGmatSubmitRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/equipos': typeof EquiposRoute
   '/etapa/$stage': typeof EtapaStageRoute
   '/etapa/gmat': typeof EtapaGmatRouteWithChildren
+  '/api/public/stage-download': typeof ApiPublicStageDownloadRoute
   '/etapa/gmat/quiz': typeof EtapaGmatQuizRoute
   '/api/public/gmat/check': typeof ApiPublicGmatCheckRoute
   '/api/public/gmat/submit': typeof ApiPublicGmatSubmitRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/equipos'
     | '/etapa/$stage'
     | '/etapa/gmat'
+    | '/api/public/stage-download'
     | '/etapa/gmat/quiz'
     | '/api/public/gmat/check'
     | '/api/public/gmat/submit'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/equipos'
     | '/etapa/$stage'
     | '/etapa/gmat'
+    | '/api/public/stage-download'
     | '/etapa/gmat/quiz'
     | '/api/public/gmat/check'
     | '/api/public/gmat/submit'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/equipos'
     | '/etapa/$stage'
     | '/etapa/gmat'
+    | '/api/public/stage-download'
     | '/etapa/gmat/quiz'
     | '/api/public/gmat/check'
     | '/api/public/gmat/submit'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   EquiposRoute: typeof EquiposRoute
   EtapaStageRoute: typeof EtapaStageRoute
   EtapaGmatRoute: typeof EtapaGmatRouteWithChildren
+  ApiPublicStageDownloadRoute: typeof ApiPublicStageDownloadRoute
   ApiPublicGmatCheckRoute: typeof ApiPublicGmatCheckRoute
   ApiPublicGmatSubmitRoute: typeof ApiPublicGmatSubmitRoute
 }
@@ -177,6 +190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EtapaGmatQuizRouteImport
       parentRoute: typeof EtapaGmatRoute
     }
+    '/api/public/stage-download': {
+      id: '/api/public/stage-download'
+      path: '/api/public/stage-download'
+      fullPath: '/api/public/stage-download'
+      preLoaderRoute: typeof ApiPublicStageDownloadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/gmat/submit': {
       id: '/api/public/gmat/submit'
       path: '/api/public/gmat/submit'
@@ -212,6 +232,7 @@ const rootRouteChildren: RootRouteChildren = {
   EquiposRoute: EquiposRoute,
   EtapaStageRoute: EtapaStageRoute,
   EtapaGmatRoute: EtapaGmatRouteWithChildren,
+  ApiPublicStageDownloadRoute: ApiPublicStageDownloadRoute,
   ApiPublicGmatCheckRoute: ApiPublicGmatCheckRoute,
   ApiPublicGmatSubmitRoute: ApiPublicGmatSubmitRoute,
 }
