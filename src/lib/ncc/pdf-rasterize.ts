@@ -25,7 +25,7 @@ export async function rasterizePdf(file: File, dpi = 200): Promise<Uint8Array> {
     if (!context) throw new Error("No se pudo procesar el PDF en este navegador.");
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, canvas.width, canvas.height);
-    await page.render({ canvasContext: context, viewport, canvas }).promise;
+    await page.render({ canvasContext: context, viewport }).promise;
 
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, "image/jpeg", 0.85),
