@@ -65,6 +65,8 @@ function StagePage() {
   const [downloading, setDownloading] = useState<"case_pdf" | "case_data" | null>(null);
   const [downloadError, setDownloadError] = useState("");
   const [downloadEmail, setDownloadEmail] = useState("");
+  const [downloadName, setDownloadName] = useState("");
+  const [downloadTeam, setDownloadTeam] = useState("");
 
   const stageId = stage as StageId;
   const config = STAGE_CONFIG[stageId];
@@ -108,8 +110,18 @@ function StagePage() {
 
   const downloadFile = async (kind: "case_pdf" | "case_data", filename: string) => {
     const email = downloadEmail.trim().toLowerCase();
+    const fullName = downloadName.trim();
+    const team = downloadTeam.trim();
     if (!/^\S+@\S+\.\S+$/.test(email) || email.length > 254) {
       setDownloadError("Ingresa un correo electrónico válido para descargar.");
+      return;
+    }
+    if (fullName.length < 3) {
+      setDownloadError("Ingresa tu nombre completo para descargar.");
+      return;
+    }
+    if (!team) {
+      setDownloadError("Ingresa el nombre de tu equipo para descargar.");
       return;
     }
     const password = localStorage.getItem(`ncc_${stageId}_password`);
@@ -123,7 +135,7 @@ function StagePage() {
       const response = await fetch("/api/public/stage-download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stage: stageId, kind, password, email }),
+        body: JSON.stringify({ stage: stageId, kind, password, email, fullName, team }),
       });
       if (!response.ok) {
         const result = (await response.json().catch(() => null)) as { error?: string } | null;
@@ -271,8 +283,42 @@ function StagePage() {
                   maxLength={254}
                   className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
                 />
+                <label
+                  htmlFor="download-name"
+                  className="block text-sm font-medium text-[var(--ncc-deep)] mt-4"
+                >
+                  Nombre completo
+                </label>
+                <input
+                  id="download-name"
+                  type="text"
+                  value={downloadName}
+                  onChange={(event) => setDownloadName(event.target.value)}
+                  placeholder="Nombre y apellido"
+                  autoComplete="name"
+                  required
+                  maxLength={120}
+                  className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                />
+                <label
+                  htmlFor="download-team"
+                  className="block text-sm font-medium text-[var(--ncc-deep)] mt-4"
+                >
+                  Equipo
+                </label>
+                <input
+                  id="download-team"
+                  type="text"
+                  value={downloadTeam}
+                  onChange={(event) => setDownloadTeam(event.target.value)}
+                  placeholder="Nombre del equipo"
+                  autoComplete="organization"
+                  required
+                  maxLength={120}
+                  className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                />
                 <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
-                  Este correo aparecerá en la marca de agua del archivo.
+                  Estos datos aparecerán en la marca de agua del archivo descargado.
                 </p>
               </div>
 

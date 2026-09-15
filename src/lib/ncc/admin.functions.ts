@@ -293,13 +293,18 @@ export const adminUploadStageFile = createServerFn({ method: "POST" })
     const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
     const safeName = data.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
     const path = `${data.stage}/${data.kind}/${Date.now()}_${safeName}`;
+    // Sponsor logos stay public; case material is stored in a private bucket and
+    // is only ever served through the protected download endpoint.
+    const bucket = data.kind === "sponsor_logo" ? "stage-files" : "case-private";
     const { error: upErr } = await supabaseAdmin.storage
-      .from("stage-files")
+      .from(bucket)
       .upload(path, bytes, { contentType: data.contentType, upsert: true });
     if (upErr) throw new Error(upErr.message);
-    const { data: pub } = supabaseAdmin.storage.from("stage-files").getPublicUrl(path);
 
-    const publicUrl = pub.publicUrl;
+    const publicUrl =
+      data.kind === "sponsor_logo"
+        ? supabaseAdmin.storage.from("stage-files").getPublicUrl(path).data.publicUrl
+        : `private:${path}`;
     let upd;
     if (data.kind === "sponsor_logo") {
       upd = supabaseAdmin

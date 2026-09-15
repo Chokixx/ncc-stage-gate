@@ -918,8 +918,12 @@ function StagesAdmin({ password }: { password: string }) {
             await reload();
           }}
           onUpload={async (kind, file) => {
-            const buf = await file.arrayBuffer();
-            const bytes = new Uint8Array(buf);
+            // Case briefs are flattened to images before leaving the browser so the
+            // stored copy has no text layer at all.
+            const bytes =
+              kind === "case_pdf"
+                ? await (await import("@/lib/ncc/pdf-rasterize")).rasterizePdf(file)
+                : new Uint8Array(await file.arrayBuffer());
             let bin = "";
             for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
             const base64 = btoa(bin);
@@ -929,7 +933,10 @@ function StagesAdmin({ password }: { password: string }) {
                 stage: s.stage,
                 kind,
                 filename: file.name,
-                contentType: file.type || "application/octet-stream",
+                contentType:
+                  kind === "case_pdf"
+                    ? "application/pdf"
+                    : file.type || "application/octet-stream",
                 base64,
               },
             });
