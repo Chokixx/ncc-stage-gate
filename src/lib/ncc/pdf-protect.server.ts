@@ -138,8 +138,8 @@ export async function protectCasePdf(source: Uint8Array, identity: DownloadIdent
     // Diagonal repeated identity watermark covering the whole page.
     const tileWidth = width * 0.46;
     const tileHeight = (identityImage.height / identityImage.width) * tileWidth;
-    const stepX = tileWidth * 0.78;
-    const stepY = tileHeight * 1.5;
+    const stepX = tileWidth * 1.25;
+    const stepY = tileHeight * 3.2;
     const jitterX = (Math.random() - 0.5) * stepX * 0.4;
     const jitterY = (Math.random() - 0.5) * stepY * 0.4;
     const angle = 30;
