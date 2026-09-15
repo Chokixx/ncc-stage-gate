@@ -52,8 +52,7 @@ export async function appendSubmissionRow(input: {
 }) {
   await ensureTab();
 
-  const link = (url: string | null, name: string | null) =>
-    url ? `=HYPERLINK("${url}";"${(name ?? "Descargar").replace(/"/g, "'")}")` : "";
+  const link = (url: string | null, _name: string | null) => url ?? "";
 
   const row = [
     new Date().toLocaleString("es-CO", { timeZone: "America/Bogota" }),
