@@ -52,6 +52,7 @@ type StageContent = {
   sponsor_link: string | null;
   case_pdf_available: boolean;
   case_pdf_name: string | null;
+  case_data_enabled: boolean;
   case_data_available: boolean;
   case_data_name: string | null;
 };
@@ -63,6 +64,7 @@ function StagePage() {
   const [content, setContent] = useState<StageContent | null>(null);
   const [downloading, setDownloading] = useState<"case_pdf" | "case_data" | null>(null);
   const [downloadError, setDownloadError] = useState("");
+  const [downloadEmail, setDownloadEmail] = useState("");
 
   const stageId = stage as StageId;
   const config = STAGE_CONFIG[stageId];
@@ -97,6 +99,7 @@ function StagePage() {
         sponsor_link: c.sponsor_link ?? null,
         case_pdf_available: c.case_pdf_available ?? false,
         case_pdf_name: c.case_pdf_name ?? null,
+        case_data_enabled: c.case_data_enabled ?? true,
         case_data_available: c.case_data_available ?? false,
         case_data_name: c.case_data_name ?? null,
       });
@@ -104,6 +107,11 @@ function StagePage() {
   }, [stageId, config, navigate]);
 
   const downloadFile = async (kind: "case_pdf" | "case_data", filename: string) => {
+    const email = downloadEmail.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(email) || email.length > 254) {
+      setDownloadError("Ingresa un correo electrónico válido para descargar.");
+      return;
+    }
     const password = localStorage.getItem(`ncc_${stageId}_password`);
     if (!password) {
       navigate({ to: "/", hash: stageId });
@@ -115,7 +123,7 @@ function StagePage() {
       const response = await fetch("/api/public/stage-download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stage: stageId, kind, password }),
+        body: JSON.stringify({ stage: stageId, kind, password, email }),
       });
       if (!response.ok) {
         const result = (await response.json().catch(() => null)) as { error?: string } | null;
@@ -248,6 +256,26 @@ function StagePage() {
                 Documentos y recursos para trabajar el caso.
               </p>
 
+              <div className="mt-5 max-w-md">
+                <label htmlFor="download-email" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                  Correo electrónico para la descarga
+                </label>
+                <input
+                  id="download-email"
+                  type="email"
+                  value={downloadEmail}
+                  onChange={(event) => setDownloadEmail(event.target.value)}
+                  placeholder="nombre@correo.com"
+                  autoComplete="email"
+                  required
+                  maxLength={254}
+                  className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                />
+                <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
+                  Este correo aparecerá en la marca de agua del archivo.
+                </p>
+              </div>
+
               <div className="mt-6 grid sm:grid-cols-2 gap-4">
                 {[
                   {
@@ -256,12 +284,12 @@ function StagePage() {
                     name: content?.case_pdf_name,
                     kind: "case_pdf" as const,
                   },
-                  {
+                  ...(content?.case_data_enabled === false ? [] : [{
                     title: "Base de datos del caso",
                     available: content?.case_data_available,
                     name: content?.case_data_name,
                     kind: "case_data" as const,
-                  },
+                  }]),
                 ].map((item) => (
                   <div
                     key={item.title}

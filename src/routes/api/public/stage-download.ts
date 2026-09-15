@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { PDFDocument } from "pdf-lib";
+import { degrees, PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import ExcelJS from "exceljs";
 import { z } from "zod";
 
@@ -8,6 +8,7 @@ const DownloadSchema = z.object({
   stage: z.enum(["alpha", "beta", "delta"]),
   kind: z.enum(["case_pdf", "case_data"]),
   password: z.string().min(1).max(200),
+  email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
 });
 
 const WATERMARK_TEXT =
@@ -27,20 +28,38 @@ function safeFilename(name: string) {
   return name.replace(/[\r\n"\\/]/g, "_");
 }
 
-async function watermarkPdf(source: Uint8Array) {
-  const [{ WATERMARK_PNG_BASE64 }] = await Promise.all([
-    import("@/lib/ncc/watermark-image.server"),
-  ]);
+function personalWatermark(email: string) {
+  return `Solo para uso de ${email}, prohibida su distribución`;
+}
+
+async function watermarkPdf(source: Uint8Array, email: string) {
   const document = await PDFDocument.load(source, { ignoreEncryption: true });
-  const watermark = await document.embedPng(WATERMARK_PNG_BASE64);
+  const font = await document.embedFont(StandardFonts.HelveticaBold);
+  const personalText = personalWatermark(email);
   for (const page of document.getPages()) {
     const { width, height } = page.getSize();
-    page.drawImage(watermark, { x: 0, y: 0, width, height });
+    const fontSize = Math.max(11, Math.min(18, width / 34));
+    const lines = [WATERMARK_TEXT, personalText];
+    for (let y = -height * 0.1; y < height; y += Math.max(125, height / 5)) {
+      for (let x = -width * 0.35; x < width; x += width * 0.78) {
+        lines.forEach((line, index) => {
+          page.drawText(line, {
+            x,
+            y: y - index * (fontSize + 5),
+            size: fontSize,
+            font,
+            color: rgb(0.07, 0.36, 0.31),
+            opacity: 1 / 3,
+            rotate: degrees(32),
+          });
+        });
+      }
+    }
   }
   return document.save();
 }
 
-async function watermarkWorkbook(source: Uint8Array) {
+async function watermarkWorkbook(source: Uint8Array, email: string) {
   const { WATERMARK_PNG_BASE64 } = await import(
     "@/lib/ncc/watermark-image.server"
   );
@@ -54,16 +73,18 @@ async function watermarkWorkbook(source: Uint8Array) {
     const lastRow = Math.max(sheet.rowCount, 35);
     const lastColumn = Math.max(sheet.columnCount, 12);
     sheet.addImage(imageId, `A1:${sheet.getColumn(lastColumn).letter}${lastRow}`);
-    sheet.headerFooter.oddHeader = `&C&14&B${WATERMARK_TEXT}`;
-    sheet.headerFooter.oddFooter = `&C${WATERMARK_TEXT}`;
+    sheet.headerFooter.oddHeader = `&C&14&B${personalWatermark(email)}`;
+    sheet.headerFooter.oddFooter = `&C${WATERMARK_TEXT} — ${personalWatermark(email)}`;
   });
   return new Uint8Array(await workbook.xlsx.writeBuffer());
 }
 
-function watermarkTextFile(source: Uint8Array) {
+function watermarkTextFile(source: Uint8Array, email: string) {
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
-  return encoder.encode(`# ${WATERMARK_TEXT}\n${decoder.decode(source)}`);
+  return encoder.encode(
+    `# ${WATERMARK_TEXT}\n# ${personalWatermark(email)}\n${decoder.decode(source)}`,
+  );
 }
 
 export const Route = createFileRoute("/api/public/stage-download")({
@@ -103,9 +124,12 @@ export const Route = createFileRoute("/api/public/stage-download")({
           } else {
             const result = await admin
                 .from("stage_content")
-                .select("case_data_url, case_data_name")
+                .select("case_data_enabled, case_data_url, case_data_name")
                 .eq("stage", parsed.data.stage)
                 .maybeSingle();
+            if (result.data && !result.data.case_data_enabled) {
+              return Response.json({ error: "La base de datos no está habilitada para esta etapa" }, { status: 404 });
+            }
             fileUrl = result.data?.case_data_url ?? null;
             fileName = result.data?.case_data_name ?? null;
             fileError = result.error;
@@ -125,13 +149,13 @@ export const Route = createFileRoute("/api/public/stage-download")({
           let contentType = original.headers.get("content-type") ?? "application/octet-stream";
 
           if (parsed.data.kind === "case_pdf" || extension === "pdf") {
-            output = await watermarkPdf(source);
+            output = await watermarkPdf(source, parsed.data.email);
             contentType = "application/pdf";
           } else if (extension === "xlsx") {
-            output = await watermarkWorkbook(source);
+            output = await watermarkWorkbook(source, parsed.data.email);
             contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
           } else if (["csv", "txt", "tsv"].includes(extension)) {
-            output = watermarkTextFile(source);
+            output = watermarkTextFile(source, parsed.data.email);
           } else {
             return Response.json(
               { error: "Este formato debe subirse como PDF, XLSX, CSV, TSV o TXT para aplicar la marca de agua." },
