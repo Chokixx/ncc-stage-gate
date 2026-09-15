@@ -283,8 +283,42 @@ function StagePage() {
                   maxLength={254}
                   className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
                 />
+                <label
+                  htmlFor="download-name"
+                  className="block text-sm font-medium text-[var(--ncc-deep)] mt-4"
+                >
+                  Nombre completo
+                </label>
+                <input
+                  id="download-name"
+                  type="text"
+                  value={downloadName}
+                  onChange={(event) => setDownloadName(event.target.value)}
+                  placeholder="Nombre y apellido"
+                  autoComplete="name"
+                  required
+                  maxLength={120}
+                  className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                />
+                <label
+                  htmlFor="download-team"
+                  className="block text-sm font-medium text-[var(--ncc-deep)] mt-4"
+                >
+                  Equipo
+                </label>
+                <input
+                  id="download-team"
+                  type="text"
+                  value={downloadTeam}
+                  onChange={(event) => setDownloadTeam(event.target.value)}
+                  placeholder="Nombre del equipo"
+                  autoComplete="organization"
+                  required
+                  maxLength={120}
+                  className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                />
                 <p className="mt-1.5 text-xs text-[var(--muted-foreground)]">
-                  Este correo aparecerá en la marca de agua del archivo.
+                  Estos datos aparecerán en la marca de agua del archivo descargado.
                 </p>
               </div>
 
