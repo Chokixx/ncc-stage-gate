@@ -5,20 +5,8 @@ import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
 import { Button } from "@/components/ui/button";
 import { getStageContent } from "@/lib/ncc/stage-content.functions";
-import { submitCaseFiles } from "@/lib/ncc/submission.functions";
-
-async function fileToBase64(file: File) {
-  const buffer = new Uint8Array(await file.arrayBuffer());
-  let binary = "";
-  for (let i = 0; i < buffer.length; i += 8192) {
-    binary += String.fromCharCode(...buffer.subarray(i, i + 8192));
-  }
-  return {
-    filename: file.name,
-    contentType: file.type || "application/octet-stream",
-    base64: btoa(binary),
-  };
-}
+import { createSubmissionUploads, submitCaseFiles } from "@/lib/ncc/submission.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type StageId = "alpha" | "beta" | "delta";
 
@@ -98,9 +86,9 @@ function StagePage() {
     if (!/^\S+@\S+\.\S+$/.test(email)) return setUploadError("Ingresa un correo válido.");
     if (!upPdf) return setUploadError("Adjunta el caso resuelto en PDF.");
     if (upPdf.type !== "application/pdf") return setUploadError("El caso debe ser un archivo PDF.");
-    const limit = 20 * 1024 * 1024;
+    const limit = 100 * 1024 * 1024;
     if (upPdf.size > limit || (upData && upData.size > limit))
-      return setUploadError("Cada archivo debe pesar menos de 20 MB.");
+      return setUploadError("Cada archivo debe pesar menos de 100 MB.");
     const password = localStorage.getItem(`ncc_${stageId}_password`);
     if (!password) {
       navigate({ to: "/", hash: stageId });
@@ -108,6 +96,25 @@ function StagePage() {
     }
     setUploading(true);
     try {
+      const slots = await createSubmissionUploads({
+        data: {
+          stage: stageId,
+          password,
+          team: upTeam.trim(),
+          pdfName: upPdf.name,
+          dataName: upData?.name ?? null,
+        },
+      });
+      const put = async (slot: { path: string; token: string }, file: File) => {
+        const { error } = await supabase.storage
+          .from("case-submissions")
+          .uploadToSignedUrl(slot.path, slot.token, file, {
+            contentType: file.type || "application/octet-stream",
+          });
+        if (error) throw new Error(error.message);
+      };
+      await put(slots.pdf, upPdf);
+      if (slots.data && upData) await put(slots.data, upData);
       await submitCaseFiles({
         data: {
           stage: stageId,
@@ -115,8 +122,8 @@ function StagePage() {
           team: upTeam.trim(),
           fullName: upName.trim(),
           email,
-          pdf: await fileToBase64(upPdf),
-          data: upData ? await fileToBase64(upData) : null,
+          pdf: { path: slots.pdf.path, filename: upPdf.name },
+          data: slots.data && upData ? { path: slots.data.path, filename: upData.name } : null,
         },
       });
       setUploadDone(true);
