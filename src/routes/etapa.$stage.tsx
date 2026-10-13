@@ -324,7 +324,7 @@ function StagePage() {
                   <img
                     src={content.sponsor_logo_url}
                     alt={content.sponsor_name || "Patrocinador"}
-                    className="w-full h-40 md:h-56 object-contain p-6 md:p-10"
+                    className="w-full h-auto max-h-[460px] object-contain p-2 md:p-4"
                     loading="lazy"
                   />
                 </a>
