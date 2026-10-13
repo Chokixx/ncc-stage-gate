@@ -294,20 +294,22 @@ function StagePage() {
 
             {/* Sponsor */}
             {content?.sponsor_enabled && content?.sponsor_logo_url && (
-              <div className="mt-8 bg-white rounded-xl border border-[var(--ncc-steel)] p-6 flex items-center gap-6 flex-wrap">
-                <div className="flex-1 min-w-[180px]">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium">
-                    Patrocinador del caso
-                  </p>
-                  <p className="font-serif text-xl text-[var(--ncc-deep)] mt-1">
-                    {content.sponsor_name || "Patrocinador"}
-                  </p>
+              <div className="mt-8 bg-white rounded-xl border border-[var(--ncc-steel)] overflow-hidden">
+                <div className="flex items-center justify-between gap-4 px-6 pt-5 pb-4 flex-wrap">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium">
+                      Patrocinador oficial del caso
+                    </p>
+                    <p className="font-serif text-2xl text-[var(--ncc-deep)] mt-1">
+                      {content.sponsor_name || "Patrocinador"}
+                    </p>
+                  </div>
                   {content.sponsor_link && (
                     <a
                       href={content.sponsor_link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 mt-2 text-sm text-[var(--ncc-deep)] hover:underline"
+                      className="inline-flex items-center gap-1.5 text-sm text-[var(--ncc-deep)] hover:underline"
                     >
                       Visitar sitio <ExternalLink className="h-3.5 w-3.5" />
                     </a>
@@ -317,17 +319,17 @@ function StagePage() {
                   href={content.sponsor_link ?? content.sponsor_logo_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="h-24 w-40 bg-[var(--ncc-cream)] rounded-md border border-[var(--ncc-steel)] flex items-center justify-center overflow-hidden"
+                  className="block w-full bg-[var(--ncc-cream)] border-t border-[var(--ncc-steel)]"
                 >
                   <img
                     src={content.sponsor_logo_url}
                     alt={content.sponsor_name || "Patrocinador"}
-                    className="max-h-full max-w-full object-contain p-2"
+                    className="w-full h-40 md:h-56 object-contain p-6 md:p-10"
                     loading="lazy"
                   />
                 </a>
               </div>
-            )}
+              )}
 
             {/* Downloadables */}
             <div className="mt-10">
