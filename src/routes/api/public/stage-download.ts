@@ -171,7 +171,8 @@ export const Route = createFileRoute("/api/public/stage-download")({
             await validateProtectedPdf(output);
             contentType = "application/pdf";
           } else if (extension === "xlsx") {
-            output = await watermarkWorkbook(source, parsed.data.email, code);
+            // Excel is delivered clean so teams can work with the data.
+            output = source;
             contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
           } else if (["csv", "txt", "tsv"].includes(extension)) {
             output = watermarkTextFile(source, parsed.data.email, code);
