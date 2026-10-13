@@ -60,8 +60,9 @@ async function watermarkWorkbook(source: Uint8Array, email: string, code: string
     const lastRow = Math.max(sheet.rowCount, 35);
     const lastColumn = Math.max(sheet.columnCount, 12);
     sheet.addImage(imageId, `A1:${sheet.getColumn(lastColumn).letter}${lastRow}`);
-    sheet.headerFooter.oddHeader = `&C&14&B${AI_PROHIBITION} — ${personalWatermark(email)}`;
-    sheet.headerFooter.oddFooter = `&C${WATERMARK_TEXT} — ${personalWatermark(email)} — ${code}`;
+    const hf = (sheet.headerFooter ??= {} as typeof sheet.headerFooter);
+    hf.oddHeader = `&C&14&B${AI_PROHIBITION} — ${personalWatermark(email)}`;
+    hf.oddFooter = `&C${WATERMARK_TEXT} — ${personalWatermark(email)} — ${code}`;
   });
   return new Uint8Array(await workbook.xlsx.writeBuffer());
 }
