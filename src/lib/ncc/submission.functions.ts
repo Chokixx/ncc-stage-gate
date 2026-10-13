@@ -3,6 +3,7 @@ import { z } from "zod";
 
 const STAGE_VALUES = ["alpha", "beta", "delta"] as const;
 type Stage = (typeof STAGE_VALUES)[number];
+const BUCKET = "case-submissions";
 
 function passwordFor(stage: Stage): string | undefined {
   const pick = (...keys: string[]) =>
@@ -17,12 +18,48 @@ function passwordFor(stage: Stage): string | undefined {
   }
 }
 
-const FileSchema = z.object({
-  filename: z.string().min(1).max(200),
-  contentType: z.string().min(1).max(120),
-  base64: z.string().min(1).max(34_000_000),
-});
+function assertPassword(stage: Stage, password: string) {
+  const expected = passwordFor(stage);
+  if (!expected || password !== expected) {
+    throw new Error("Acceso no autorizado para esta etapa.");
+  }
+}
 
+const safe = (s: string, n = 120) => s.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, n);
+
+/** Step 1: issue signed upload URLs so files go straight to storage (up to 100 MB). */
+export const createSubmissionUploads = createServerFn({ method: "POST" })
+  .inputValidator((i) =>
+    z
+      .object({
+        stage: z.enum(STAGE_VALUES),
+        password: z.string().min(1).max(200),
+        team: z.string().min(1).max(200),
+        pdfName: z.string().min(1).max(200),
+        dataName: z.string().min(1).max(200).nullable().optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data }) => {
+    assertPassword(data.stage, data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const stamp = Date.now();
+    const base = `${data.stage}/${safe(data.team.trim(), 60)}/${stamp}`;
+    const sign = async (name: string, tag: string) => {
+      const path = `${base}_${tag}_${safe(name)}`;
+      const { data: s, error } = await supabaseAdmin.storage
+        .from(BUCKET)
+        .createSignedUploadUrl(path);
+      if (error || !s) throw new Error(error?.message ?? "No se pudo preparar la subida.");
+      return { path, token: s.token };
+    };
+    return {
+      pdf: await sign(data.pdfName, "entrega"),
+      data: data.dataName ? await sign(data.dataName, "datos") : null,
+    };
+  });
+
+/** Step 2: after uploading, register the submission in Sheets. */
 export const submitCaseFiles = createServerFn({ method: "POST" })
   .inputValidator((i) =>
     z
@@ -32,40 +69,33 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
         team: z.string().min(1).max(200),
         fullName: z.string().min(3).max(200),
         email: z.string().email().max(254),
-        pdf: FileSchema,
-        data: FileSchema.nullable().optional(),
+        pdf: z.object({ path: z.string().min(1).max(400), filename: z.string().min(1).max(200) }),
+        data: z
+          .object({ path: z.string().min(1).max(400), filename: z.string().min(1).max(200) })
+          .nullable()
+          .optional(),
       })
       .parse(i),
   )
   .handler(async ({ data }) => {
-    const expected = passwordFor(data.stage);
-    if (!expected || data.password !== expected) {
-      throw new Error("Acceso no autorizado para esta etapa.");
+    assertPassword(data.stage, data.password);
+    const prefix = `${data.stage}/`;
+    if (!data.pdf.path.startsWith(prefix) || (data.data && !data.data.path.startsWith(prefix))) {
+      throw new Error("Ruta de archivo inválida.");
     }
-
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { appendSubmissionRow } = await import("./submission-sheets.server");
 
-    const stamp = Date.now();
-    const safeTeam = data.team.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 60);
-
-    const upload = async (file: z.infer<typeof FileSchema>, tag: string) => {
-      const bytes = Uint8Array.from(atob(file.base64), (c) => c.charCodeAt(0));
-      const safeName = file.filename.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const path = `${data.stage}/${safeTeam}/${stamp}_${tag}_${safeName}`;
-      const { error } = await supabaseAdmin.storage
-        .from("case-submissions")
-        .upload(path, bytes, { contentType: file.contentType, upsert: true });
-      if (error) throw new Error(error.message);
-      const { data: signed, error: signErr } = await supabaseAdmin.storage
-        .from("case-submissions")
+    const link = async (path: string) => {
+      const { data: signed, error } = await supabaseAdmin.storage
+        .from(BUCKET)
         .createSignedUrl(path, 60 * 60 * 24 * 365);
-      if (signErr || !signed) throw new Error(signErr?.message ?? "No se pudo generar el enlace.");
+      if (error || !signed) throw new Error(error?.message ?? "No se encontró el archivo subido.");
       return signed.signedUrl;
     };
 
-    const pdfUrl = await upload(data.pdf, "entrega");
-    const dataUrl = data.data ? await upload(data.data, "datos") : null;
+    const pdfUrl = await link(data.pdf.path);
+    const dataUrl = data.data ? await link(data.data.path) : null;
 
     await appendSubmissionRow({
       stage: data.stage,
