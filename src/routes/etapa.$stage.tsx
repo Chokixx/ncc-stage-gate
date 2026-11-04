@@ -519,8 +519,9 @@ function StagePage() {
                 Entrega del caso
               </h3>
               <p className="text-sm text-[var(--muted-foreground)] mt-2">
-                Sube aquí la solución de tu equipo. El PDF es obligatorio; el archivo de Excel es
-                opcional.
+                {content?.nda_enabled && content?.nda_available
+                  ? "Sube la solución de tu equipo: el PDF es obligatorio, el Excel opcional y el NDA firmado por cada integrante."
+                  : "Sube aquí la solución de tu equipo. El PDF es obligatorio; el archivo de Excel es opcional."}
               </p>
 
               <div className="mt-5 bg-white rounded-xl border border-[var(--ncc-steel)] p-6 md:p-8 max-w-2xl">
@@ -611,6 +612,76 @@ function StagePage() {
                         className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
                       />
                     </div>
+                    {content?.nda_enabled && content?.nda_available && (
+                      <div className="rounded-lg border border-[var(--ncc-steel)] bg-[var(--ncc-cream)] p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <p className="text-sm font-medium text-[var(--ncc-deep)]">
+                            NDA firmado por cada integrante
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void downloadFile("nda", content?.nda_name ?? "NDA.pdf")
+                            }
+                            disabled={downloading !== null}
+                            className="inline-flex items-center gap-2 rounded-md border border-[var(--ncc-steel)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)] disabled:opacity-50"
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                            {downloading === "nda" ? "Preparando…" : "Descargar NDA"}
+                          </button>
+                        </div>
+                        <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                          Descarga el documento, hazlo firmar por todo el equipo y sube una copia
+                          por cada integrante.
+                        </p>
+                        <div className="mt-4 space-y-3">
+                          {ndaMembers.map((member, index) => (
+                            <div
+                              key={index}
+                              className="grid gap-2 sm:grid-cols-2 sm:items-center"
+                            >
+                              <input
+                                type="text"
+                                value={member.name}
+                                onChange={(e) => setNdaMemberName(index, e.target.value)}
+                                placeholder={`Integrante ${index + 1}`}
+                                maxLength={120}
+                                className="w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                              />
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  onChange={(e) =>
+                                    setNdaMemberFile(index, e.target.files?.[0] ?? null)
+                                  }
+                                  className="w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2 text-xs file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
+                                />
+                                {ndaMembers.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeNdaMember(index)}
+                                    aria-label={`Quitar integrante ${index + 1}`}
+                                    className="shrink-0 text-xs text-[var(--muted-foreground)] underline"
+                                  >
+                                    Quitar
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {ndaMembers.length < 8 && (
+                          <button
+                            type="button"
+                            onClick={addNdaMember}
+                            className="mt-3 text-xs font-medium text-[var(--ncc-deep)] underline"
+                          >
+                            + Añadir integrante
+                          </button>
+                        )}
+                      </div>
+                    )}
                     <Button
                       type="button"
                       onClick={() => void submitCase()}
