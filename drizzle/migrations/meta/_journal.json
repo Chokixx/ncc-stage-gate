@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1793759850503,
+      "tag": "0000_stage_nda_requirement",
+      "breakpoints": true
+    }
+  ]
+}
