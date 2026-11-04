@@ -4,6 +4,7 @@ import { z } from "zod";
 const STAGE_VALUES = ["alpha", "beta", "delta"] as const;
 type Stage = (typeof STAGE_VALUES)[number];
 const BUCKET = "case-submissions";
+const MAX_MEMBERS = 10;
 
 function passwordFor(stage: Stage): string | undefined {
   const pick = (...keys: string[]) =>
@@ -25,6 +26,18 @@ function assertPassword(stage: Stage, password: string) {
   }
 }
 
+// El requisito del NDA se decide en el panel de administración, no en el navegador.
+async function stageRequiresNda(stage: Stage) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("stage_content")
+    .select("nda_enabled")
+    .eq("stage", stage)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return Boolean(data?.nda_enabled);
+}
+
 const safe = (s: string, n = 120) => s.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, n);
 
 /** Step 1: issue signed upload URLs so files go straight to storage (up to 100 MB). */
@@ -37,11 +50,17 @@ export const createSubmissionUploads = createServerFn({ method: "POST" })
         team: z.string().min(1).max(200),
         pdfName: z.string().min(1).max(200),
         dataName: z.string().min(1).max(200).nullable().optional(),
+        ndaNames: z.array(z.string().min(1).max(200)).max(MAX_MEMBERS).default([]),
       })
       .parse(i),
   )
   .handler(async ({ data }) => {
     assertPassword(data.stage, data.password);
+    if (await stageRequiresNda(data.stage)) {
+      if (data.ndaNames.length === 0) {
+        throw new Error("Esta etapa exige subir el NDA firmado por cada integrante.");
+      }
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const stamp = Date.now();
     const base = `${data.stage}/${safe(data.team.trim(), 60)}/${stamp}`;
@@ -56,6 +75,7 @@ export const createSubmissionUploads = createServerFn({ method: "POST" })
     return {
       pdf: await sign(data.pdfName, "entrega"),
       data: data.dataName ? await sign(data.dataName, "datos") : null,
+      nda: await Promise.all(data.ndaNames.map((name, index) => sign(name, `nda${index + 1}`))),
     };
   });
 
@@ -74,14 +94,32 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
           .object({ path: z.string().min(1).max(400), filename: z.string().min(1).max(200) })
           .nullable()
           .optional(),
+        nda: z
+          .array(
+            z.object({
+              path: z.string().min(1).max(400),
+              filename: z.string().min(1).max(200),
+              member: z.string().min(2).max(120),
+            }),
+          )
+          .max(MAX_MEMBERS)
+          .default([]),
       })
       .parse(i),
   )
   .handler(async ({ data }) => {
     assertPassword(data.stage, data.password);
     const prefix = `${data.stage}/`;
-    if (!data.pdf.path.startsWith(prefix) || (data.data && !data.data.path.startsWith(prefix))) {
+    const ndaPaths = data.nda.map((item) => item.path);
+    if (
+      !data.pdf.path.startsWith(prefix) ||
+      (data.data && !data.data.path.startsWith(prefix)) ||
+      ndaPaths.some((path) => !path.startsWith(prefix))
+    ) {
       throw new Error("Ruta de archivo inválida.");
+    }
+    if ((await stageRequiresNda(data.stage)) && data.nda.length === 0) {
+      throw new Error("Esta etapa exige subir el NDA firmado por cada integrante.");
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { appendSubmissionRow } = await import("./submission-sheets.server");
@@ -96,6 +134,9 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
 
     const pdfUrl = await link(data.pdf.path);
     const dataUrl = data.data ? await link(data.data.path) : null;
+    const nda = await Promise.all(
+      data.nda.map(async (item) => ({ member: item.member.trim(), url: await link(item.path) })),
+    );
 
     await appendSubmissionRow({
       stage: data.stage,
@@ -106,6 +147,7 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
       pdfName: data.pdf.filename,
       dataUrl,
       dataName: data.data?.filename ?? null,
+      nda,
     });
 
     return { ok: true };
