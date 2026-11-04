@@ -229,7 +229,7 @@ export const adminListSubmissions = createServerFn({ method: "POST" })
 
 // ---------- Stage Content ----------
 const StageId = z.enum(["alpha", "beta", "delta"]);
-const FileKind = z.enum(["sponsor_logo", "case_pdf", "case_data"]);
+const FileKind = z.enum(["sponsor_logo", "case_pdf", "case_data", "nda"]);
 
 export const adminListStageContent = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ password: z.string().min(1).max(200) }).parse(i))
@@ -238,7 +238,7 @@ export const adminListStageContent = createServerFn({ method: "POST" })
     const { data: rows, error } = await supabaseAdmin
       .from("stage_content")
       .select(
-        "id, stage, intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_enabled, case_data_url, case_data_name, updated_at",
+        "id, stage, intro, sponsor_enabled, sponsor_name, sponsor_logo_url, sponsor_link, case_pdf_url, case_pdf_name, case_data_enabled, case_data_url, case_data_name, nda_enabled, nda_url, nda_name, updated_at",
       )
       .order("stage");
     if (error) throw new Error(error.message);
@@ -256,6 +256,7 @@ export const adminUpdateStageContent = createServerFn({ method: "POST" })
         case_data_enabled: z.boolean(),
         sponsor_name: z.string().max(200),
         sponsor_link: z.string().url().max(2000).nullable(),
+        nda_enabled: z.boolean().optional(),
       })
       .parse(i),
   )
@@ -269,6 +270,7 @@ export const adminUpdateStageContent = createServerFn({ method: "POST" })
         case_data_enabled: data.case_data_enabled,
         sponsor_name: data.sponsor_name,
         sponsor_link: data.sponsor_link,
+        ...(data.nda_enabled === undefined ? {} : { nda_enabled: data.nda_enabled }),
       })
       .eq("stage", data.stage);
     if (error) throw new Error(error.message);
@@ -316,10 +318,16 @@ export const adminUploadStageFile = createServerFn({ method: "POST" })
         .from("stage_content")
         .update({ case_pdf_url: publicUrl, case_pdf_name: data.filename })
         .eq("stage", data.stage);
-    } else {
+    } else if (data.kind === "case_data") {
       upd = supabaseAdmin
         .from("stage_content")
         .update({ case_data_url: publicUrl, case_data_name: data.filename })
+        .eq("stage", data.stage);
+    } else {
+      // Subir el NDA activa de una vez su exigencia en la entrega de la etapa.
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ nda_url: publicUrl, nda_name: data.filename, nda_enabled: true })
         .eq("stage", data.stage);
     }
     const { error } = await upd;
@@ -344,10 +352,15 @@ export const adminClearStageFile = createServerFn({ method: "POST" })
         .from("stage_content")
         .update({ case_pdf_url: null, case_pdf_name: null })
         .eq("stage", data.stage);
-    } else {
+    } else if (data.kind === "case_data") {
       upd = supabaseAdmin
         .from("stage_content")
         .update({ case_data_url: null, case_data_name: null })
+        .eq("stage", data.stage);
+    } else {
+      upd = supabaseAdmin
+        .from("stage_content")
+        .update({ nda_url: null, nda_name: null, nda_enabled: false })
         .eq("stage", data.stage);
     }
     const { error } = await upd;
