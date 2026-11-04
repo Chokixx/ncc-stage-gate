@@ -861,6 +861,9 @@ type StageRow = {
   case_data_enabled: boolean;
   case_data_url: string | null;
   case_data_name: string | null;
+  nda_enabled: boolean;
+  nda_url: string | null;
+  nda_name: string | null;
 };
 
 const STAGE_LABELS: Record<StageRow["stage"], string> = {
@@ -903,7 +906,14 @@ function StagesAdmin({ password }: { password: string }) {
         <StageCard
           key={s.id}
           row={s}
-          onSave={async (intro, sponsor_enabled, case_data_enabled, sponsor_name, sponsor_link) => {
+          onSave={async (
+            intro,
+            sponsor_enabled,
+            case_data_enabled,
+            sponsor_name,
+            sponsor_link,
+            nda_enabled,
+          ) => {
             await update({
               data: {
                 password,
@@ -911,6 +921,7 @@ function StagesAdmin({ password }: { password: string }) {
                 intro,
                 sponsor_enabled,
                 case_data_enabled,
+                nda_enabled,
                 sponsor_name,
                 sponsor_link: sponsor_link || null,
               },
@@ -952,7 +963,7 @@ function StagesAdmin({ password }: { password: string }) {
   );
 }
 
-type FileKind = "sponsor_logo" | "case_pdf" | "case_data";
+type FileKind = "sponsor_logo" | "case_pdf" | "case_data" | "nda";
 
 function StageCard({
   row,
@@ -961,13 +972,14 @@ function StageCard({
   onClear,
 }: {
   row: StageRow;
-  onSave: (intro: string, sponsorEnabled: boolean, caseDataEnabled: boolean, sponsorName: string, sponsorLink: string) => Promise<void>;
+  onSave: (intro: string, sponsorEnabled: boolean, caseDataEnabled: boolean, sponsorName: string, sponsorLink: string, ndaEnabled: boolean) => Promise<void>;
   onUpload: (kind: FileKind, file: File) => Promise<void>;
   onClear: (kind: FileKind) => Promise<void>;
 }) {
   const [intro, setIntro] = useState(row.intro);
   const [sponsorEnabled, setSponsorEnabled] = useState(row.sponsor_enabled);
   const [caseDataEnabled, setCaseDataEnabled] = useState(row.case_data_enabled);
+  const [ndaEnabled, setNdaEnabled] = useState(row.nda_enabled);
   const [sponsorName, setSponsorName] = useState(row.sponsor_name);
   const [sponsorLink, setSponsorLink] = useState(row.sponsor_link ?? "");
   const [busy, setBusy] = useState(false);
@@ -976,14 +988,16 @@ function StageCard({
     setIntro(row.intro);
     setSponsorEnabled(row.sponsor_enabled);
     setCaseDataEnabled(row.case_data_enabled);
+    setNdaEnabled(row.nda_enabled);
     setSponsorName(row.sponsor_name);
     setSponsorLink(row.sponsor_link ?? "");
-  }, [row.id, row.intro, row.sponsor_enabled, row.case_data_enabled, row.sponsor_name, row.sponsor_link]);
+  }, [row.id, row.intro, row.sponsor_enabled, row.case_data_enabled, row.nda_enabled, row.sponsor_name, row.sponsor_link]);
 
   const dirty =
     intro !== row.intro ||
     sponsorEnabled !== row.sponsor_enabled ||
     caseDataEnabled !== row.case_data_enabled ||
+    ndaEnabled !== row.nda_enabled ||
     sponsorName !== row.sponsor_name ||
     (sponsorLink || "") !== (row.sponsor_link ?? "");
 
@@ -1144,13 +1158,49 @@ function StageCard({
             />
           </div>
         </div>
+
+        {/* NDA firmado */}
+        <div className="border border-[var(--ncc-steel)] rounded-lg p-4">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium">
+              NDA de confidencialidad
+            </p>
+            <label className="inline-flex items-center gap-2 text-xs text-[var(--ncc-deep)] cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={ndaEnabled}
+                onChange={(e) => setNdaEnabled(e.target.checked)}
+                className="h-4 w-4 accent-[var(--ncc-deep)]"
+              />
+              {ndaEnabled ? "NDA obligatorio" : "NDA no exigido"}
+            </label>
+          </div>
+          <FileSlot
+            label="Documento NDA para firmar"
+            url={row.nda_url}
+            name={row.nda_name}
+            uploadBtn={fileInput("nda", "application/pdf", "Subir NDA")}
+            onClear={
+              row.nda_url
+                ? () => void wrap(() => onClear("nda"))
+                : undefined
+            }
+            busy={busy}
+          />
+          <p className="mt-2 text-xs text-[var(--muted-foreground)]">
+            Con el NDA activado, ningún equipo puede entregar la etapa sin subir el documento
+            firmado por cada uno de sus integrantes.
+          </p>
+        </div>
       </div>
 
       <div className="mt-6 flex justify-end">
         <button
           disabled={!dirty || busy}
           onClick={() =>
-            void wrap(() => onSave(intro, sponsorEnabled, caseDataEnabled, sponsorName, sponsorLink))
+            void wrap(() =>
+              onSave(intro, sponsorEnabled, caseDataEnabled, sponsorName, sponsorLink, ndaEnabled),
+            )
           }
           className="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-[var(--ncc-deep)] text-white disabled:opacity-40"
         >

@@ -216,6 +216,9 @@ export type Database = {
           created_at: string
           id: string
           intro: string
+          nda_enabled: boolean
+          nda_name: string | null
+          nda_url: string | null
           sponsor_enabled: boolean
           sponsor_link: string | null
           sponsor_logo_url: string | null
@@ -232,6 +235,9 @@ export type Database = {
           created_at?: string
           id?: string
           intro?: string
+          nda_enabled?: boolean
+          nda_name?: string | null
+          nda_url?: string | null
           sponsor_enabled?: boolean
           sponsor_link?: string | null
           sponsor_logo_url?: string | null
@@ -248,6 +254,9 @@ export type Database = {
           created_at?: string
           id?: string
           intro?: string
+          nda_enabled?: boolean
+          nda_name?: string | null
+          nda_url?: string | null
           sponsor_enabled?: boolean
           sponsor_link?: string | null
           sponsor_logo_url?: string | null

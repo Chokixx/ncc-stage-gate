@@ -57,6 +57,9 @@ type StageContent = {
   case_data_enabled: boolean;
   case_data_available: boolean;
   case_data_name: string | null;
+  nda_enabled: boolean;
+  nda_available: boolean;
+  nda_name: string | null;
 };
 
 function StagePage() {
@@ -64,7 +67,7 @@ function StagePage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
   const [content, setContent] = useState<StageContent | null>(null);
-  const [downloading, setDownloading] = useState<"case_pdf" | "case_data" | null>(null);
+  const [downloading, setDownloading] = useState<"case_pdf" | "case_data" | "nda" | null>(null);
   const [downloadError, setDownloadError] = useState("");
   const [downloadEmail, setDownloadEmail] = useState("");
   const [downloadName, setDownloadName] = useState("");
@@ -77,9 +80,24 @@ function StagePage() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadDone, setUploadDone] = useState(false);
+  const [ndaMembers, setNdaMembers] = useState<{ name: string; file: File | null }[]>([
+    { name: "", file: null },
+  ]);
+  const addNdaMember = () => setNdaMembers((members) => [...members, { name: "", file: null }]);
+  const removeNdaMember = (index: number) =>
+    setNdaMembers((members) => members.filter((_, position) => position !== index));
+  const setNdaMemberName = (index: number, name: string) =>
+    setNdaMembers((members) =>
+      members.map((member, position) => (position === index ? { ...member, name } : member)),
+    );
+  const setNdaMemberFile = (index: number, file: File | null) =>
+    setNdaMembers((members) =>
+      members.map((member, position) => (position === index ? { ...member, file } : member)),
+    );
 
   const submitCase = async () => {
     setUploadError("");
+    const ndaRequired = Boolean(content?.nda_enabled && content?.nda_available);
     const email = upEmail.trim().toLowerCase();
     if (!upTeam.trim()) return setUploadError("Ingresa el nombre de tu equipo.");
     if (upName.trim().length < 3) return setUploadError("Ingresa tu nombre completo.");
@@ -87,7 +105,25 @@ function StagePage() {
     if (!upPdf) return setUploadError("Adjunta el caso resuelto en PDF.");
     if (upPdf.type !== "application/pdf") return setUploadError("El caso debe ser un archivo PDF.");
     const limit = 100 * 1024 * 1024;
-    if (upPdf.size > limit || (upData && upData.size > limit))
+    const ndaRows = ndaRequired
+      ? ndaMembers.filter((member) => member.name.trim() || member.file)
+      : [];
+    if (ndaRequired) {
+      if (ndaRows.length === 0)
+        return setUploadError("Sube el NDA firmado por cada integrante del equipo.");
+      for (const member of ndaRows) {
+        if (member.name.trim().length < 3)
+          return setUploadError("Escribe el nombre completo de cada integrante con NDA.");
+        if (!member.file) return setUploadError(`Falta el NDA firmado de ${member.name.trim()}.`);
+        if (member.file.type !== "application/pdf")
+          return setUploadError("Cada NDA debe ser un archivo PDF.");
+      }
+    }
+    if (
+      upPdf.size > limit ||
+      (upData && upData.size > limit) ||
+      ndaRows.some((member) => member.file!.size > limit)
+    )
       return setUploadError("Cada archivo debe pesar menos de 100 MB.");
     const password = localStorage.getItem(`ncc_${stageId}_password`);
     if (!password) {
@@ -103,6 +139,7 @@ function StagePage() {
           team: upTeam.trim(),
           pdfName: upPdf.name,
           dataName: upData?.name ?? null,
+          ndaNames: ndaRows.map((member) => member.file!.name),
         },
       });
       const put = async (slot: { path: string; token: string }, file: File) => {
@@ -115,6 +152,7 @@ function StagePage() {
       };
       await put(slots.pdf, upPdf);
       if (slots.data && upData) await put(slots.data, upData);
+      await Promise.all(ndaRows.map((member, index) => put(slots.nda[index], member.file!)));
       await submitCaseFiles({
         data: {
           stage: stageId,
@@ -124,11 +162,17 @@ function StagePage() {
           email,
           pdf: { path: slots.pdf.path, filename: upPdf.name },
           data: slots.data && upData ? { path: slots.data.path, filename: upData.name } : null,
+          nda: ndaRows.map((member, index) => ({
+            path: slots.nda[index].path,
+            filename: member.file!.name,
+            member: member.name.trim(),
+          })),
         },
       });
       setUploadDone(true);
       setUpPdf(null);
       setUpData(null);
+      setNdaMembers([{ name: "", file: null }]);
     } catch (error) {
       setUploadError(
         error instanceof Error ? error.message : "No se pudo enviar la entrega.",
@@ -174,11 +218,14 @@ function StagePage() {
         case_data_enabled: c.case_data_enabled ?? true,
         case_data_available: c.case_data_available ?? false,
         case_data_name: c.case_data_name ?? null,
+        nda_enabled: c.nda_enabled ?? false,
+        nda_available: c.nda_available ?? false,
+        nda_name: c.nda_name ?? null,
       });
     });
   }, [stageId, config, navigate]);
 
-  const downloadFile = async (kind: "case_pdf" | "case_data", filename: string) => {
+  const downloadFile = async (kind: "case_pdf" | "case_data" | "nda", filename: string) => {
     const email = downloadEmail.trim().toLowerCase();
     const fullName = downloadName.trim();
     const team = downloadTeam.trim();
@@ -186,13 +233,15 @@ function StagePage() {
       setDownloadError("Ingresa un correo electrónico válido para descargar.");
       return;
     }
-    if (fullName.length < 3) {
-      setDownloadError("Ingresa tu nombre completo para descargar.");
-      return;
-    }
-    if (!team) {
-      setDownloadError("Ingresa el nombre de tu equipo para descargar.");
-      return;
+    if (kind !== "nda") {
+      if (fullName.length < 3) {
+        setDownloadError("Ingresa tu nombre completo para descargar.");
+        return;
+      }
+      if (!team) {
+        setDownloadError("Ingresa el nombre de tu equipo para descargar.");
+        return;
+      }
     }
     const password = localStorage.getItem(`ncc_${stageId}_password`);
     if (!password) {
@@ -470,8 +519,9 @@ function StagePage() {
                 Entrega del caso
               </h3>
               <p className="text-sm text-[var(--muted-foreground)] mt-2">
-                Sube aquí la solución de tu equipo. El PDF es obligatorio; el archivo de Excel es
-                opcional.
+                {content?.nda_enabled && content?.nda_available
+                  ? "Sube la solución de tu equipo: el PDF es obligatorio, el Excel opcional y el NDA firmado por cada integrante."
+                  : "Sube aquí la solución de tu equipo. El PDF es obligatorio; el archivo de Excel es opcional."}
               </p>
 
               <div className="mt-5 bg-white rounded-xl border border-[var(--ncc-steel)] p-6 md:p-8 max-w-2xl">
@@ -562,6 +612,76 @@ function StagePage() {
                         className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
                       />
                     </div>
+                    {content?.nda_enabled && content?.nda_available && (
+                      <div className="rounded-lg border border-[var(--ncc-steel)] bg-[var(--ncc-cream)] p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <p className="text-sm font-medium text-[var(--ncc-deep)]">
+                            NDA firmado por cada integrante
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void downloadFile("nda", content?.nda_name ?? "NDA.pdf")
+                            }
+                            disabled={downloading !== null}
+                            className="inline-flex items-center gap-2 rounded-md border border-[var(--ncc-steel)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)] disabled:opacity-50"
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                            {downloading === "nda" ? "Preparando…" : "Descargar NDA"}
+                          </button>
+                        </div>
+                        <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                          Descarga el documento, hazlo firmar por todo el equipo y sube una copia
+                          por cada integrante.
+                        </p>
+                        <div className="mt-4 space-y-3">
+                          {ndaMembers.map((member, index) => (
+                            <div
+                              key={index}
+                              className="grid gap-2 sm:grid-cols-2 sm:items-center"
+                            >
+                              <input
+                                type="text"
+                                value={member.name}
+                                onChange={(e) => setNdaMemberName(index, e.target.value)}
+                                placeholder={`Integrante ${index + 1}`}
+                                maxLength={120}
+                                className="w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                              />
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  onChange={(e) =>
+                                    setNdaMemberFile(index, e.target.files?.[0] ?? null)
+                                  }
+                                  className="w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2 text-xs file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
+                                />
+                                {ndaMembers.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeNdaMember(index)}
+                                    aria-label={`Quitar integrante ${index + 1}`}
+                                    className="shrink-0 text-xs text-[var(--muted-foreground)] underline"
+                                  >
+                                    Quitar
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {ndaMembers.length < 8 && (
+                          <button
+                            type="button"
+                            onClick={addNdaMember}
+                            className="mt-3 text-xs font-medium text-[var(--ncc-deep)] underline"
+                          >
+                            + Añadir integrante
+                          </button>
+                        )}
+                      </div>
+                    )}
                     <Button
                       type="button"
                       onClick={() => void submitCase()}

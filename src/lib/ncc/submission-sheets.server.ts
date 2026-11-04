@@ -24,6 +24,8 @@ const HEADERS = [
   "Correo",
   "Archivo PDF",
   "Archivo Excel",
+  "NDA Firmados",
+  "Enlaces NDA",
 ];
 
 async function ensureTab() {
@@ -40,6 +42,22 @@ async function ensureTab() {
   }
 }
 
+// La hoja "Entregas" ya existía sin las columnas de NDA; se escriben por si acaso
+// antes de guardar una entrega que sí los trae.
+async function ensureNdaColumns() {
+  const res = await fetch(
+    `${GATEWAY_URL}/spreadsheets/${SHEET_ID}/values/${TAB}!H1:I1?valueInputOption=USER_ENTERED`,
+    {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify({ values: [HEADERS.slice(7)] }),
+    },
+  );
+  if (!res.ok) {
+    console.error(`[Entregas] no se pudieron escribir los encabezados de NDA [${res.status}]`);
+  }
+}
+
 export async function appendSubmissionRow(input: {
   stage: string;
   team: string;
@@ -49,6 +67,7 @@ export async function appendSubmissionRow(input: {
   pdfName: string | null;
   dataUrl: string | null;
   dataName: string | null;
+  nda: { member: string; url: string }[];
 }) {
   await ensureTab();
 
@@ -62,10 +81,14 @@ export async function appendSubmissionRow(input: {
     input.email,
     link(input.pdfUrl, input.pdfName),
     link(input.dataUrl, input.dataName),
+    input.nda.map((item) => item.member).join(", "),
+    input.nda.map((item) => item.url).join("\n"),
   ];
 
+  if (input.nda.length > 0) await ensureNdaColumns();
+
   const res = await fetch(
-    `${GATEWAY_URL}/spreadsheets/${SHEET_ID}/values/${TAB}!A:G:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+    `${GATEWAY_URL}/spreadsheets/${SHEET_ID}/values/${TAB}!A:I:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
     { method: "POST", headers: authHeaders(), body: JSON.stringify({ values: [row] }) },
   );
   if (!res.ok) {
