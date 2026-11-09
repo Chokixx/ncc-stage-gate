@@ -11,3 +11,4 @@
 - [x] Exigir el NDA firmado por cada integrante en la etapa Delta, con carga desde el panel.
 - [x] Cambiar el NDA de Delta al enlace de firma y exigir comprobantes de todos los integrantes.
 - [x] Comprobar el enlace y el bloqueo de entrega con un comprobante faltante; conservar el registro de comprobantes en Entregas.
+- [x] Añadir en el panel un botón para quitar o volver a exigir el NDA por etapa; dejar Delta sin exigencia.

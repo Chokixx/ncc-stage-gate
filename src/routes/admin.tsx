@@ -9,6 +9,8 @@ import {
   Upload,
   Save,
   LogOut,
+  ShieldOff,
+  ShieldCheck,
 } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
@@ -1011,6 +1013,20 @@ function StageCard({
     sponsorName !== row.sponsor_name ||
     (sponsorLink || "") !== (row.sponsor_link ?? "");
 
+  // El botón del NDA guarda de una vez, sin depender del "Guardar cambios".
+  const saveNdaRequirement = (next: boolean) =>
+    wrap(() =>
+      onSave(
+        intro,
+        sponsorEnabled,
+        caseDataEnabled,
+        sponsorName,
+        sponsorLink,
+        next,
+        ndaSigningUrl || undefined,
+      ),
+    );
+
   const wrap = async (fn: () => Promise<void>) => {
     setBusy(true);
     try {
@@ -1171,19 +1187,41 @@ function StageCard({
 
         {/* NDA firmado */}
         <div className="border border-[var(--ncc-steel)] rounded-lg p-4">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium">
-              NDA de confidencialidad
-            </p>
-            <label className="inline-flex items-center gap-2 text-xs text-[var(--ncc-deep)] cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={ndaEnabled}
-                onChange={(e) => setNdaEnabled(e.target.checked)}
-                className="h-4 w-4 accent-[var(--ncc-deep)]"
-              />
-              {ndaEnabled ? "NDA obligatorio" : "NDA no exigido"}
-            </label>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--ncc-medium)] font-medium">
+                NDA de confidencialidad
+              </p>
+              <span
+                className={
+                  "rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide " +
+                  (ndaEnabled
+                    ? "bg-[var(--ncc-mint)] text-[var(--ncc-deep)]"
+                    : "bg-[var(--ncc-cream)] text-[var(--ncc-medium)]")
+                }
+              >
+                {ndaEnabled ? "Obligatorio" : "No exigido"}
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant={ndaEnabled ? "outline" : "default"}
+              disabled={busy}
+              onClick={() => void saveNdaRequirement(!ndaEnabled)}
+              className="h-auto min-h-11 whitespace-normal px-4 py-2.5 text-sm font-semibold"
+            >
+              {ndaEnabled ? (
+                <>
+                  <ShieldOff className="h-4 w-4" />
+                  Quitar exigencia del NDA
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="h-4 w-4" />
+                  Volver a exigir NDA
+                </>
+              )}
+            </Button>
           </div>
           {row.stage === "delta" || ndaSigningUrl ? (
             <div>
@@ -1204,8 +1242,9 @@ function StageCard({
             busy={busy}
           />}
           <p className="mt-2 text-xs text-[var(--muted-foreground)]">
-            Todos los integrantes deben firmar y adjuntar su comprobante individual en PDF.
-            Los comprobantes quedan en la hoja Entregas para revisión.
+            {ndaEnabled
+              ? "Mientras esté obligatorio, la entrega queda bloqueada hasta que cada integrante adjunte su comprobante individual en PDF, y los comprobantes quedan en la hoja Entregas para revisión."
+              : "Con la exigencia quitada, los equipos pueden entregar el caso sin adjuntar comprobantes del NDA. El enlace de firma queda guardado para volver a exigirlos cuando quieras."}
           </p>
         </div>
       </div>
