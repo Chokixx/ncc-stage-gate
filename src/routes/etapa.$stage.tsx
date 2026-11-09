@@ -580,7 +580,7 @@ function StagePage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="grid gap-4">
+                  <div className="grid min-w-0 gap-4 [&>div]:min-w-0 [&_input]:min-w-0 [&_input]:max-w-full [&_select]:min-w-0 [&_select]:max-w-full">
                     <div>
                       <label htmlFor="up-team" className="block text-sm font-medium text-[var(--ncc-deep)]">
                         Equipo
@@ -686,7 +686,7 @@ function StagePage() {
                           {ndaMembers.map((member, index) => (
                             <div
                               key={index}
-                              className="grid gap-2 sm:grid-cols-2 sm:items-center"
+                              className="grid min-w-0 gap-2 sm:grid-cols-2 sm:items-center"
                             >
                               <input
                                 type="text"
@@ -698,7 +698,7 @@ function StagePage() {
                                 maxLength={120}
                                 className="w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
                               />
-                              <div className="flex items-center gap-2">
+                              <div className="flex min-w-0 items-center gap-2">
                                 <input
                                   type="file"
                                   accept="application/pdf"
