@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { getStageContent } from "@/lib/ncc/stage-content.functions";
 import { createSubmissionUploads, submitCaseFiles } from "@/lib/ncc/submission.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { listRegisteredTeams } from "@/lib/ncc/registered-teams.functions";
+import type { EquipoNCC } from "@/lib/ncc/equipos-2026";
 
 type StageId = "alpha" | "beta" | "delta";
 
@@ -60,6 +62,7 @@ type StageContent = {
   nda_enabled: boolean;
   nda_available: boolean;
   nda_name: string | null;
+  nda_signing_url: string | null;
 };
 
 function StagePage() {
@@ -80,6 +83,8 @@ function StagePage() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadDone, setUploadDone] = useState(false);
+  const [registeredTeams, setRegisteredTeams] = useState<EquipoNCC[]>([]);
+  const [rosterError, setRosterError] = useState("");
   const [ndaMembers, setNdaMembers] = useState<{ name: string; file: File | null }[]>([
     { name: "", file: null },
   ]);
@@ -97,7 +102,7 @@ function StagePage() {
 
   const submitCase = async () => {
     setUploadError("");
-    const ndaRequired = Boolean(content?.nda_enabled && content?.nda_available);
+    const ndaRequired = Boolean(content?.nda_enabled);
     const email = upEmail.trim().toLowerCase();
     if (!upTeam.trim()) return setUploadError("Ingresa el nombre de tu equipo.");
     if (upName.trim().length < 3) return setUploadError("Ingresa tu nombre completo.");
@@ -119,10 +124,15 @@ function StagePage() {
           return setUploadError("Cada NDA debe ser un archivo PDF.");
       }
     }
+    const completeNdaRows: { name: string; file: File }[] = [];
+    for (const member of ndaRows) {
+      if (!member.file) return setUploadError(`Falta el comprobante de ${member.name.trim()}.`);
+      completeNdaRows.push({ name: member.name, file: member.file });
+    }
     if (
       upPdf.size > limit ||
       (upData && upData.size > limit) ||
-      ndaRows.some((member) => member.file!.size > limit)
+      completeNdaRows.some((member) => member.file.size > limit)
     )
       return setUploadError("Cada archivo debe pesar menos de 100 MB.");
     const password = localStorage.getItem(`ncc_${stageId}_password`);
@@ -139,7 +149,8 @@ function StagePage() {
           team: upTeam.trim(),
           pdfName: upPdf.name,
           dataName: upData?.name ?? null,
-          ndaNames: ndaRows.map((member) => member.file!.name),
+          ndaNames: completeNdaRows.map((member) => member.file.name),
+          ndaMembers: completeNdaRows.map((member) => member.name.trim()),
         },
       });
       const put = async (slot: { path: string; token: string }, file: File) => {
@@ -152,7 +163,11 @@ function StagePage() {
       };
       await put(slots.pdf, upPdf);
       if (slots.data && upData) await put(slots.data, upData);
-      await Promise.all(ndaRows.map((member, index) => put(slots.nda[index], member.file!)));
+      await Promise.all(completeNdaRows.map((member, index) => {
+        const slot = slots.nda[index];
+        if (!slot) throw new Error("No se pudo preparar el comprobante del NDA.");
+        return put(slot, member.file);
+      }));
       await submitCaseFiles({
         data: {
           stage: stageId,
@@ -162,11 +177,11 @@ function StagePage() {
           email,
           pdf: { path: slots.pdf.path, filename: upPdf.name },
           data: slots.data && upData ? { path: slots.data.path, filename: upData.name } : null,
-          nda: ndaRows.map((member, index) => ({
-            path: slots.nda[index].path,
-            filename: member.file!.name,
-            member: member.name.trim(),
-          })),
+          nda: completeNdaRows.map((member, index) => {
+            const slot = slots.nda[index];
+            if (!slot) throw new Error("No se pudo registrar el comprobante del NDA.");
+            return { path: slot.path, filename: member.file.name, member: member.name.trim() };
+          }),
         },
       });
       setUploadDone(true);
@@ -184,6 +199,25 @@ function StagePage() {
 
   const stageId = stage as StageId;
   const config = STAGE_CONFIG[stageId];
+  const ndaRequired = Boolean(content?.nda_enabled);
+  const useRegisteredRoster = stageId === "delta" && ndaRequired;
+  const ndaComplete = ndaMembers.length > 0 && ndaMembers.every((member) => member.name.trim().length >= 3 && member.file?.type === "application/pdf");
+
+  useEffect(() => {
+    if (!ready || !useRegisteredRoster) return;
+    void listRegisteredTeams().then(({ teams }) => {
+      setRegisteredTeams(teams);
+      setRosterError("");
+    }).catch(() => setRosterError("No se pudo cargar la lista de equipos. Recarga la página."));
+  }, [ready, useRegisteredRoster]);
+
+  const selectDeliveryTeam = (name: string) => {
+    setUpTeam(name);
+    if (useRegisteredRoster) {
+      const team = registeredTeams.find((item) => item.name === name);
+      setNdaMembers(team?.members.map((member) => ({ name: member.name, file: null })) ?? []);
+    }
+  };
 
   useEffect(() => {
     if (!config) {
@@ -221,6 +255,7 @@ function StagePage() {
         nda_enabled: c.nda_enabled ?? false,
         nda_available: c.nda_available ?? false,
         nda_name: c.nda_name ?? null,
+        nda_signing_url: c.nda_signing_url ?? null,
       });
     });
   }, [stageId, config, navigate]);
@@ -519,8 +554,8 @@ function StagePage() {
                 Entrega del caso
               </h3>
               <p className="text-sm text-[var(--muted-foreground)] mt-2">
-                {content?.nda_enabled && content?.nda_available
-                  ? "Sube la solución de tu equipo: el PDF es obligatorio, el Excel opcional y el NDA firmado por cada integrante."
+                {ndaRequired
+                  ? "Todos los integrantes deben firmar el NDA y adjuntar su comprobante individual en PDF antes de entregar. El Excel es opcional."
                   : "Sube aquí la solución de tu equipo. El PDF es obligatorio; el archivo de Excel es opcional."}
               </p>
 
@@ -545,12 +580,17 @@ function StagePage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="grid gap-4">
+                  <div className="grid min-w-0 gap-4 [&>div]:min-w-0 [&_input]:min-w-0 [&_input]:max-w-full [&_select]:min-w-0 [&_select]:max-w-full">
                     <div>
                       <label htmlFor="up-team" className="block text-sm font-medium text-[var(--ncc-deep)]">
                         Equipo
                       </label>
-                      <input
+                      {useRegisteredRoster ? (
+                        <select id="up-team" value={upTeam} onChange={(event) => selectDeliveryTeam(event.target.value)} disabled={uploading} className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm">
+                          <option value="">Selecciona tu equipo</option>
+                          {registeredTeams.map((team, index) => <option key={`${team.name}-${index}`} value={team.name}>{team.name}</option>)}
+                        </select>
+                      ) : <input
                         id="up-team"
                         type="text"
                         value={upTeam}
@@ -558,7 +598,8 @@ function StagePage() {
                         placeholder="Nombre del equipo"
                         maxLength={120}
                         className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
-                      />
+                      />}
+                      {rosterError && <p role="alert" className="mt-2 text-sm text-destructive">{rosterError}</p>}
                     </div>
                     <div>
                       <label htmlFor="up-name" className="block text-sm font-medium text-[var(--ncc-deep)]">
@@ -596,6 +637,7 @@ function StagePage() {
                         id="up-pdf"
                         type="file"
                         accept="application/pdf"
+                        disabled={uploading || (ndaRequired && !ndaComplete)}
                         onChange={(e) => setUpPdf(e.target.files?.[0] ?? null)}
                         className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
                       />
@@ -608,84 +650,96 @@ function StagePage() {
                         id="up-data"
                         type="file"
                         accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                        disabled={uploading || (ndaRequired && !ndaComplete)}
                         onChange={(e) => setUpData(e.target.files?.[0] ?? null)}
                         className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
                       />
                     </div>
-                    {content?.nda_enabled && content?.nda_available && (
+                    {ndaRequired && (
                       <div className="rounded-lg border border-[var(--ncc-steel)] bg-[var(--ncc-cream)] p-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <p className="text-sm font-medium text-[var(--ncc-deep)]">
                             NDA firmado por cada integrante
                           </p>
-                          <button
+                          {content?.nda_signing_url ? (
+                            <Button asChild variant="outline" size="sm">
+                              <a href={content.nda_signing_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" />Diligenciar y firmar NDA</a>
+                            </Button>
+                          ) : content?.nda_available ? <Button
                             type="button"
                             onClick={() =>
                               void downloadFile("nda", content?.nda_name ?? "NDA.pdf")
                             }
                             disabled={downloading !== null}
-                            className="inline-flex items-center gap-2 rounded-md border border-[var(--ncc-steel)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--ncc-deep)] hover:bg-[var(--ncc-mint)] disabled:opacity-50"
+                            variant="outline" size="sm"
                           >
                             <Download className="h-3.5 w-3.5" />
                             {downloading === "nda" ? "Preparando…" : "Descargar NDA"}
-                          </button>
+                          </Button> : null}
                         </div>
                         <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                          Descarga el documento, hazlo firmar por todo el equipo y sube una copia
-                          por cada integrante.
+                          {content?.nda_signing_url
+                            ? "Cada integrante debe diligenciar y firmar en el enlace. Adjunta el PDF firmado o comprobante de firma de cada persona. NCC revisará los comprobantes."
+                            : "Sube el NDA firmado en PDF por cada integrante."}
                         </p>
                         <div className="mt-4 space-y-3">
                           {ndaMembers.map((member, index) => (
                             <div
                               key={index}
-                              className="grid gap-2 sm:grid-cols-2 sm:items-center"
+                              className="grid min-w-0 gap-2 sm:grid-cols-2 sm:items-center"
                             >
                               <input
                                 type="text"
                                 value={member.name}
+                                readOnly={useRegisteredRoster}
+                                aria-label={`Nombre del integrante ${index + 1}`}
                                 onChange={(e) => setNdaMemberName(index, e.target.value)}
                                 placeholder={`Integrante ${index + 1}`}
                                 maxLength={120}
                                 className="w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
                               />
-                              <div className="flex items-center gap-2">
+                              <div className="flex min-w-0 items-center gap-2">
                                 <input
                                   type="file"
                                   accept="application/pdf"
+                                  aria-label={`Comprobante NDA de ${member.name || `integrante ${index + 1}`}`}
+                                  disabled={uploading}
                                   onChange={(e) =>
                                     setNdaMemberFile(index, e.target.files?.[0] ?? null)
                                   }
                                   className="w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2 text-xs file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
                                 />
-                                {ndaMembers.length > 1 && (
-                                  <button
+                                {!useRegisteredRoster && ndaMembers.length > 1 && (
+                                  <Button variant="ghost" size="sm"
                                     type="button"
                                     onClick={() => removeNdaMember(index)}
                                     aria-label={`Quitar integrante ${index + 1}`}
                                     className="shrink-0 text-xs text-[var(--muted-foreground)] underline"
                                   >
                                     Quitar
-                                  </button>
+                                  </Button>
                                 )}
                               </div>
                             </div>
                           ))}
                         </div>
-                        {ndaMembers.length < 8 && (
-                          <button
+                        {!useRegisteredRoster && ndaMembers.length < 8 && (
+                          <Button variant="ghost" size="sm"
                             type="button"
                             onClick={addNdaMember}
                             className="mt-3 text-xs font-medium text-[var(--ncc-deep)] underline"
                           >
                             + Añadir integrante
-                          </button>
+                          </Button>
                         )}
+                        {useRegisteredRoster && !upTeam && <p className="mt-3 text-sm text-muted-foreground">Selecciona tu equipo para ver sus integrantes.</p>}
+                        <p className="mt-3 text-xs text-muted-foreground">{ndaComplete ? "Comprobantes adjuntos de todos los integrantes." : "Pendiente: comprobante individual de cada integrante para habilitar la entrega."}</p>
                       </div>
                     )}
                     <Button
                       type="button"
                       onClick={() => void submitCase()}
-                      disabled={uploading}
+                      disabled={uploading || (ndaRequired && !ndaComplete)}
                       className="bg-[var(--ncc-deep)] text-primary-foreground hover:opacity-90 w-full sm:w-auto"
                     >
                       <Upload className="h-4 w-4" />

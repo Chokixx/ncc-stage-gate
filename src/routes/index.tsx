@@ -18,6 +18,10 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "National Case Competition — Train. Compete. Become." },
+      { property: "og:title", content: "National Case Competition — Train. Compete. Become." },
+      { property: "og:description", content: "NCC: la competencia universitaria de consultoría estratégica." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         name: "description",
         content:

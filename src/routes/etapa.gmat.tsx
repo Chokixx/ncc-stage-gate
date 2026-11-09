@@ -11,6 +11,10 @@ export const Route = createFileRoute("/etapa/gmat")({
   head: () => ({
     meta: [
       { title: "GMAT — National Case Competition" },
+      { property: "og:title", content: "GMAT — National Case Competition" },
+      { property: "og:description", content: "Selección de equipo para la etapa GMAT." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "description", content: "Selección de equipo para la etapa GMAT." },
     ],
   }),

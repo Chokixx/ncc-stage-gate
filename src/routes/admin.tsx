@@ -34,12 +34,17 @@ import {
   adminSeedRegisteredTeams,
 } from "@/lib/ncc/admin.functions";
 import { answersToLetters, durationMinutes } from "@/lib/ncc/gmat-format";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
   head: () => ({
     meta: [
       { title: "Administrador — NCC" },
+      { property: "og:title", content: "Administrador — NCC" },
+      { property: "og:description", content: "Panel de administración del NCC." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "description", content: "Panel de administración del NCC." },
     ],
   }),
@@ -913,6 +918,7 @@ function StagesAdmin({ password }: { password: string }) {
             sponsor_name,
             sponsor_link,
             nda_enabled,
+            nda_signing_url,
           ) => {
             await update({
               data: {
@@ -922,6 +928,7 @@ function StagesAdmin({ password }: { password: string }) {
                 sponsor_enabled,
                 case_data_enabled,
                 nda_enabled,
+                nda_signing_url,
                 sponsor_name,
                 sponsor_link: sponsor_link || null,
               },
@@ -972,7 +979,7 @@ function StageCard({
   onClear,
 }: {
   row: StageRow;
-  onSave: (intro: string, sponsorEnabled: boolean, caseDataEnabled: boolean, sponsorName: string, sponsorLink: string, ndaEnabled: boolean) => Promise<void>;
+  onSave: (intro: string, sponsorEnabled: boolean, caseDataEnabled: boolean, sponsorName: string, sponsorLink: string, ndaEnabled: boolean, ndaSigningUrl?: string | null) => Promise<void>;
   onUpload: (kind: FileKind, file: File) => Promise<void>;
   onClear: (kind: FileKind) => Promise<void>;
 }) {
@@ -980,6 +987,7 @@ function StageCard({
   const [sponsorEnabled, setSponsorEnabled] = useState(row.sponsor_enabled);
   const [caseDataEnabled, setCaseDataEnabled] = useState(row.case_data_enabled);
   const [ndaEnabled, setNdaEnabled] = useState(row.nda_enabled);
+  const [ndaSigningUrl, setNdaSigningUrl] = useState(row.nda_url?.startsWith("https://") ? row.nda_url : "");
   const [sponsorName, setSponsorName] = useState(row.sponsor_name);
   const [sponsorLink, setSponsorLink] = useState(row.sponsor_link ?? "");
   const [busy, setBusy] = useState(false);
@@ -989,15 +997,17 @@ function StageCard({
     setSponsorEnabled(row.sponsor_enabled);
     setCaseDataEnabled(row.case_data_enabled);
     setNdaEnabled(row.nda_enabled);
+    setNdaSigningUrl(row.nda_url?.startsWith("https://") ? row.nda_url : "");
     setSponsorName(row.sponsor_name);
     setSponsorLink(row.sponsor_link ?? "");
-  }, [row.id, row.intro, row.sponsor_enabled, row.case_data_enabled, row.nda_enabled, row.sponsor_name, row.sponsor_link]);
+  }, [row.id, row.intro, row.sponsor_enabled, row.case_data_enabled, row.nda_enabled, row.nda_url, row.sponsor_name, row.sponsor_link]);
 
   const dirty =
     intro !== row.intro ||
     sponsorEnabled !== row.sponsor_enabled ||
     caseDataEnabled !== row.case_data_enabled ||
     ndaEnabled !== row.nda_enabled ||
+    ndaSigningUrl !== (row.nda_url?.startsWith("https://") ? row.nda_url : "") ||
     sponsorName !== row.sponsor_name ||
     (sponsorLink || "") !== (row.sponsor_link ?? "");
 
@@ -1175,7 +1185,13 @@ function StageCard({
               {ndaEnabled ? "NDA obligatorio" : "NDA no exigido"}
             </label>
           </div>
-          <FileSlot
+          {row.stage === "delta" || ndaSigningUrl ? (
+            <div>
+              <label htmlFor={`nda-link-${row.stage}`} className="block text-sm font-medium text-[var(--ncc-deep)]">Enlace para diligenciar y firmar NDA</label>
+              <input id={`nda-link-${row.stage}`} type="url" value={ndaSigningUrl} onChange={(event) => setNdaSigningUrl(event.target.value)} maxLength={2000} className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm" />
+              {ndaSigningUrl.startsWith("https://") && <Button asChild variant="link" size="sm"><a href={ndaSigningUrl} target="_blank" rel="noopener noreferrer">Abrir enlace de firma</a></Button>}
+            </div>
+          ) : <FileSlot
             label="Documento NDA para firmar"
             url={row.nda_url}
             name={row.nda_name}
@@ -1186,10 +1202,10 @@ function StageCard({
                 : undefined
             }
             busy={busy}
-          />
+          />}
           <p className="mt-2 text-xs text-[var(--muted-foreground)]">
-            Con el NDA activado, ningún equipo puede entregar la etapa sin subir el documento
-            firmado por cada uno de sus integrantes.
+            Todos los integrantes deben firmar y adjuntar su comprobante individual en PDF.
+            Los comprobantes quedan en la hoja Entregas para revisión.
           </p>
         </div>
       </div>
@@ -1199,7 +1215,7 @@ function StageCard({
           disabled={!dirty || busy}
           onClick={() =>
             void wrap(() =>
-              onSave(intro, sponsorEnabled, caseDataEnabled, sponsorName, sponsorLink, ndaEnabled),
+              onSave(intro, sponsorEnabled, caseDataEnabled, sponsorName, sponsorLink, ndaEnabled, ndaSigningUrl ? ndaSigningUrl : row.nda_url?.startsWith("https://") ? null : undefined),
             )
           }
           className="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-md bg-[var(--ncc-deep)] text-white disabled:opacity-40"
