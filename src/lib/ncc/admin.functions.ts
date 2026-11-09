@@ -257,6 +257,7 @@ export const adminUpdateStageContent = createServerFn({ method: "POST" })
         sponsor_name: z.string().max(200),
         sponsor_link: z.string().url().max(2000).nullable(),
         nda_enabled: z.boolean().optional(),
+        nda_signing_url: z.string().url().max(2000).refine((value) => value.startsWith("https://"), "El enlace debe comenzar con https://").nullable().optional(),
       })
       .parse(i),
   )
@@ -271,6 +272,7 @@ export const adminUpdateStageContent = createServerFn({ method: "POST" })
         sponsor_name: data.sponsor_name,
         sponsor_link: data.sponsor_link,
         ...(data.nda_enabled === undefined ? {} : { nda_enabled: data.nda_enabled }),
+        ...(data.nda_signing_url === undefined ? {} : { nda_url: data.nda_signing_url, nda_name: data.nda_signing_url ? "Diligenciar y firmar NDA en línea" : null }),
       })
       .eq("stage", data.stage);
     if (error) throw new Error(error.message);
