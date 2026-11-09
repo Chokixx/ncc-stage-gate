@@ -26,6 +26,7 @@ const HEADERS = [
   "Archivo Excel",
   "NDA Firmados",
   "Enlaces NDA",
+  "Enlace YouTube",
 ];
 
 async function ensureTab() {
@@ -46,7 +47,7 @@ async function ensureTab() {
 // antes de guardar una entrega que sí los trae.
 async function ensureNdaColumns() {
   const res = await fetch(
-    `${GATEWAY_URL}/spreadsheets/${SHEET_ID}/values/${TAB}!H1:I1?valueInputOption=USER_ENTERED`,
+    `${GATEWAY_URL}/spreadsheets/${SHEET_ID}/values/${TAB}!H1:J1?valueInputOption=USER_ENTERED`,
     {
       method: "PUT",
       headers: authHeaders(),
@@ -68,6 +69,7 @@ export async function appendSubmissionRow(input: {
   dataUrl: string | null;
   dataName: string | null;
   nda: { member: string; url: string }[];
+  youtubeUrl?: string | null;
 }) {
   await ensureTab();
 
@@ -83,12 +85,13 @@ export async function appendSubmissionRow(input: {
     link(input.dataUrl, input.dataName),
     input.nda.map((item) => item.member).join(", "),
     input.nda.map((item) => item.url).join("\n"),
+    input.youtubeUrl ?? "",
   ];
 
-  if (input.nda.length > 0) await ensureNdaColumns();
+  if (input.nda.length > 0 || input.youtubeUrl) await ensureNdaColumns();
 
   const res = await fetch(
-    `${GATEWAY_URL}/spreadsheets/${SHEET_ID}/values/${TAB}!A:I:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+    `${GATEWAY_URL}/spreadsheets/${SHEET_ID}/values/${TAB}!A:J:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
     { method: "POST", headers: authHeaders(), body: JSON.stringify({ values: [row] }) },
   );
   if (!res.ok) {
