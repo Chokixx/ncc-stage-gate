@@ -15,6 +15,10 @@ export const Route = createFileRoute("/etapa/gmat/quiz")({
   head: () => ({
     meta: [
       { title: "GMAT Quiz — National Case Competition" },
+      { property: "og:title", content: "GMAT Quiz — National Case Competition" },
+      { property: "og:description", content: "Examen GMAT cronometrado del NCC." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "description", content: "Examen GMAT cronometrado." },
     ],
   }),

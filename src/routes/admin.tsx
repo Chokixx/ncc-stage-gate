@@ -41,6 +41,10 @@ export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
       { title: "Administrador — NCC" },
+      { property: "og:title", content: "Administrador — NCC" },
+      { property: "og:description", content: "Panel de administración del NCC." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "description", content: "Panel de administración del NCC." },
     ],
   }),

@@ -9,7 +9,6 @@ import { createSubmissionUploads, submitCaseFiles } from "@/lib/ncc/submission.f
 import { supabase } from "@/integrations/supabase/client";
 import { listRegisteredTeams } from "@/lib/ncc/registered-teams.functions";
 import type { EquipoNCC } from "@/lib/ncc/equipos-2026";
-import { normalizeNdaName } from "@/lib/ncc/nda-validation";
 
 type StageId = "alpha" | "beta" | "delta";
 
