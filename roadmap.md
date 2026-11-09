@@ -9,4 +9,5 @@
 - [x] Añadir apartado de entrega del caso por etapa y registrarla en la hoja "Entregas".
 - [x] Registrar cada descarga de caso en la hoja de datos de la etapa correspondiente.
 - [x] Exigir el NDA firmado por cada integrante en la etapa Delta, con carga desde el panel.
-- [ ] Subir el documento NDA definitivo al panel de administración cuando llegue (mañana).
+- [ ] Cambiar el NDA de Delta al enlace de firma y exigir comprobantes de todos los integrantes.
+- [ ] Comprobar el enlace, el bloqueo de entrega y el registro de comprobantes.
