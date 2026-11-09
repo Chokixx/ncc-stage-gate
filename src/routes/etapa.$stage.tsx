@@ -662,8 +662,8 @@ function StagePage() {
                             NDA firmado por cada integrante
                           </p>
                           {content?.nda_signing_url ? (
-                            <Button asChild variant="outline" size="sm">
-                              <a href={content.nda_signing_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5" />Diligenciar y firmar NDA</a>
+                            <Button asChild size="lg" className="h-auto min-h-14 w-full whitespace-normal px-4 py-4 text-base font-semibold [&_svg]:size-5">
+                              <a href={content.nda_signing_url} target="_blank" rel="noopener noreferrer"><ExternalLink />Diligenciar y firmar NDA</a>
                             </Button>
                           ) : content?.nda_available ? <Button
                             type="button"
