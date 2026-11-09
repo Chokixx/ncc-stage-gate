@@ -9,6 +9,8 @@ import {
   Upload,
   Save,
   LogOut,
+  ShieldOff,
+  ShieldCheck,
 } from "lucide-react";
 import { Navbar } from "@/components/ncc/Navbar";
 import { Footer } from "@/components/ncc/Footer";
@@ -1010,6 +1012,20 @@ function StageCard({
     ndaSigningUrl !== (row.nda_url?.startsWith("https://") ? row.nda_url : "") ||
     sponsorName !== row.sponsor_name ||
     (sponsorLink || "") !== (row.sponsor_link ?? "");
+
+  // El botón del NDA guarda de una vez, sin depender del "Guardar cambios".
+  const saveNdaRequirement = (next: boolean) =>
+    wrap(() =>
+      onSave(
+        intro,
+        sponsorEnabled,
+        caseDataEnabled,
+        sponsorName,
+        sponsorLink,
+        next,
+        ndaSigningUrl || undefined,
+      ),
+    );
 
   const wrap = async (fn: () => Promise<void>) => {
     setBusy(true);
