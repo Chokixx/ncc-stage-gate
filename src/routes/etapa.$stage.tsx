@@ -80,6 +80,7 @@ function StagePage() {
   const [upEmail, setUpEmail] = useState("");
   const [upPdf, setUpPdf] = useState<File | null>(null);
   const [upData, setUpData] = useState<File | null>(null);
+  const [upYoutube, setUpYoutube] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadDone, setUploadDone] = useState(false);
@@ -107,8 +108,17 @@ function StagePage() {
     if (!upTeam.trim()) return setUploadError("Ingresa el nombre de tu equipo.");
     if (upName.trim().length < 3) return setUploadError("Ingresa tu nombre completo.");
     if (!/^\S+@\S+\.\S+$/.test(email)) return setUploadError("Ingresa un correo válido.");
-    if (!upPdf) return setUploadError("Adjunta el caso resuelto en PDF.");
-    if (upPdf.type !== "application/pdf") return setUploadError("El caso debe ser un archivo PDF.");
+    const youtubeMode = stageId === "delta";
+    const youtubeUrl = upYoutube.trim();
+    if (youtubeMode) {
+      if (!/^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\/\S+$/i.test(youtubeUrl))
+        return setUploadError("Pega un enlace válido de YouTube (https://youtube.com/... o https://youtu.be/...).");
+    } else {
+      if (!upPdf) return setUploadError("Adjunta el caso resuelto en PDF.");
+      if (upPdf.type !== "application/pdf") return setUploadError("El caso debe ser un archivo PDF.");
+    }
+    const pdfFile = youtubeMode ? null : upPdf;
+    const dataFile = youtubeMode ? null : upData;
     const limit = 100 * 1024 * 1024;
     const ndaRows = ndaRequired
       ? ndaMembers.filter((member) => member.name.trim() || member.file)
@@ -130,8 +140,8 @@ function StagePage() {
       completeNdaRows.push({ name: member.name, file: member.file });
     }
     if (
-      upPdf.size > limit ||
-      (upData && upData.size > limit) ||
+      (pdfFile && pdfFile.size > limit) ||
+      (dataFile && dataFile.size > limit) ||
       completeNdaRows.some((member) => member.file.size > limit)
     )
       return setUploadError("Cada archivo debe pesar menos de 100 MB.");
@@ -142,13 +152,15 @@ function StagePage() {
     }
     setUploading(true);
     try {
-      const slots = await createSubmissionUploads({
+      const slots = !pdfFile && completeNdaRows.length === 0
+        ? { pdf: null, data: null, nda: [] as { path: string; token: string }[] }
+        : await createSubmissionUploads({
         data: {
           stage: stageId,
           password,
           team: upTeam.trim(),
-          pdfName: upPdf.name,
-          dataName: upData?.name ?? null,
+          pdfName: pdfFile?.name ?? null,
+          dataName: dataFile?.name ?? null,
           ndaNames: completeNdaRows.map((member) => member.file.name),
           ndaMembers: completeNdaRows.map((member) => member.name.trim()),
         },
@@ -161,8 +173,8 @@ function StagePage() {
           });
         if (error) throw new Error(error.message);
       };
-      await put(slots.pdf, upPdf);
-      if (slots.data && upData) await put(slots.data, upData);
+      if (slots.pdf && pdfFile) await put(slots.pdf, pdfFile);
+      if (slots.data && dataFile) await put(slots.data, dataFile);
       await Promise.all(completeNdaRows.map((member, index) => {
         const slot = slots.nda[index];
         if (!slot) throw new Error("No se pudo preparar el comprobante del NDA.");
@@ -175,8 +187,9 @@ function StagePage() {
           team: upTeam.trim(),
           fullName: upName.trim(),
           email,
-          pdf: { path: slots.pdf.path, filename: upPdf.name },
-          data: slots.data && upData ? { path: slots.data.path, filename: upData.name } : null,
+          pdf: slots.pdf && pdfFile ? { path: slots.pdf.path, filename: pdfFile.name } : null,
+          data: slots.data && dataFile ? { path: slots.data.path, filename: dataFile.name } : null,
+          youtubeUrl: youtubeMode ? youtubeUrl : null,
           nda: completeNdaRows.map((member, index) => {
             const slot = slots.nda[index];
             if (!slot) throw new Error("No se pudo registrar el comprobante del NDA.");
@@ -187,6 +200,7 @@ function StagePage() {
       setUploadDone(true);
       setUpPdf(null);
       setUpData(null);
+      setUpYoutube("");
       setNdaMembers([{ name: "", file: null }]);
     } catch (error) {
       setUploadError(
@@ -556,7 +570,9 @@ function StagePage() {
               <p className="text-sm text-[var(--muted-foreground)] mt-2">
                 {ndaRequired
                   ? "Todos los integrantes deben firmar el NDA y adjuntar su comprobante individual en PDF antes de entregar. El Excel es opcional."
-                  : "Sube aquí la solución de tu equipo. El PDF es obligatorio; el archivo de Excel es opcional."}
+                  : stageId === "delta"
+                    ? "Pega aquí el enlace de YouTube con la solución de tu equipo."
+                    : "Sube aquí la solución de tu equipo. El PDF es obligatorio; el archivo de Excel es opcional."}
               </p>
 
               <div className="mt-5 bg-white rounded-xl border border-[var(--ncc-steel)] p-6 md:p-8 max-w-2xl">
@@ -629,6 +645,24 @@ function StagePage() {
                         className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
                       />
                     </div>
+                    {stageId === "delta" ? (
+                      <div>
+                        <label htmlFor="up-youtube" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                          Enlace de YouTube de la entrega
+                        </label>
+                        <input
+                          id="up-youtube"
+                          type="url"
+                          value={upYoutube}
+                          onChange={(e) => setUpYoutube(e.target.value)}
+                          placeholder="https://youtu.be/..."
+                          maxLength={500}
+                          disabled={uploading || (ndaRequired && !ndaComplete)}
+                          className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm outline-none focus:border-[var(--ncc-deep)]"
+                        />
+                      </div>
+                    ) : (
+                      <>
                     <div>
                       <label htmlFor="up-pdf" className="block text-sm font-medium text-[var(--ncc-deep)]">
                         Caso resuelto (PDF)
@@ -655,6 +689,8 @@ function StagePage() {
                         className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
                       />
                     </div>
+                      </>
+                    )}
                     {ndaRequired && (
                       <div className="rounded-lg border border-[var(--ncc-steel)] bg-[var(--ncc-cream)] p-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">

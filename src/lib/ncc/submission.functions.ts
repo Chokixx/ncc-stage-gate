@@ -38,6 +38,10 @@ async function stageRequiresNda(stage: Stage) {
   return Boolean(data?.nda_enabled);
 }
 
+export const YOUTUBE_URL_RE = /^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\/\S+$/i;
+// Delta se entrega solo con un enlace de YouTube; las demás etapas con PDF.
+const usesYoutube = (stage: Stage) => stage === "delta";
+
 const safe = (s: string, n = 120) => s.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, n);
 
 /** Step 1: issue signed upload URLs so files go straight to storage (up to 100 MB). */
@@ -48,7 +52,7 @@ export const createSubmissionUploads = createServerFn({ method: "POST" })
         stage: z.enum(STAGE_VALUES),
         password: z.string().min(1).max(200),
         team: z.string().min(1).max(200),
-        pdfName: z.string().min(1).max(200),
+        pdfName: z.string().min(1).max(200).nullable().optional(),
         dataName: z.string().min(1).max(200).nullable().optional(),
         ndaNames: z.array(z.string().min(1).max(200)).max(MAX_MEMBERS).default([]),
         ndaMembers: z.array(z.string().min(2).max(120)).max(MAX_MEMBERS).default([]),
@@ -81,8 +85,8 @@ export const createSubmissionUploads = createServerFn({ method: "POST" })
       return { path, token: s.token };
     };
     return {
-      pdf: await sign(data.pdfName, "entrega"),
-      data: data.dataName ? await sign(data.dataName, "datos") : null,
+      pdf: data.pdfName && !usesYoutube(data.stage) ? await sign(data.pdfName, "entrega") : null,
+      data: data.dataName && !usesYoutube(data.stage) ? await sign(data.dataName, "datos") : null,
       nda: await Promise.all(data.ndaNames.map((name, index) => sign(name, `nda${index + 1}`))),
     };
   });
@@ -97,7 +101,8 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
         team: z.string().min(1).max(200),
         fullName: z.string().min(3).max(200),
         email: z.string().email().max(254),
-        pdf: z.object({ path: z.string().min(1).max(400), filename: z.string().min(1).max(200) }),
+        pdf: z.object({ path: z.string().min(1).max(400), filename: z.string().min(1).max(200) }).nullable().optional(),
+        youtubeUrl: z.string().max(500).nullable().optional(),
         data: z
           .object({ path: z.string().min(1).max(400), filename: z.string().min(1).max(200) })
           .nullable()
@@ -120,11 +125,19 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
     const prefix = `${data.stage}/`;
     const ndaPaths = data.nda.map((item) => item.path);
     if (
-      !data.pdf.path.startsWith(prefix) ||
+      (data.pdf && !data.pdf.path.startsWith(prefix)) ||
       (data.data && !data.data.path.startsWith(prefix)) ||
       ndaPaths.some((path) => !path.startsWith(prefix))
     ) {
       throw new Error("Ruta de archivo inválida.");
+    }
+    const youtubeUrl = data.youtubeUrl?.trim() || null;
+    if (usesYoutube(data.stage)) {
+      if (!youtubeUrl || !YOUTUBE_URL_RE.test(youtubeUrl)) {
+        throw new Error("Pega un enlace válido de YouTube.");
+      }
+    } else if (!data.pdf) {
+      throw new Error("Adjunta el caso resuelto en PDF.");
     }
     if (await stageRequiresNda(data.stage)) {
       if (data.nda.length === 0) throw new Error("Esta etapa exige subir el NDA firmado por cada integrante.");
@@ -147,8 +160,8 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
       return signed.signedUrl;
     };
 
-    const pdfUrl = await link(data.pdf.path);
-    const dataUrl = data.data ? await link(data.data.path) : null;
+    const pdfUrl = data.pdf && !usesYoutube(data.stage) ? await link(data.pdf.path) : null;
+    const dataUrl = data.data && !usesYoutube(data.stage) ? await link(data.data.path) : null;
     const nda = await Promise.all(
       data.nda.map(async (item) => ({ member: item.member.trim(), url: await link(item.path) })),
     );
@@ -159,7 +172,8 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
       fullName: data.fullName.trim(),
       email: data.email.trim().toLowerCase(),
       pdfUrl,
-      pdfName: data.pdf.filename,
+      pdfName: data.pdf?.filename ?? null,
+      youtubeUrl,
       dataUrl,
       dataName: data.data?.filename ?? null,
       nda,
