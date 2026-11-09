@@ -56,6 +56,7 @@ export const createSubmissionUploads = createServerFn({ method: "POST" })
         dataName: z.string().min(1).max(200).nullable().optional(),
         ndaNames: z.array(z.string().min(1).max(200)).max(MAX_MEMBERS).default([]),
         ndaMembers: z.array(z.string().min(2).max(120)).max(MAX_MEMBERS).default([]),
+        annexNames: z.array(z.string().min(1).max(200)).max(10).default([]),
       })
       .parse(i),
   )
@@ -88,6 +89,7 @@ export const createSubmissionUploads = createServerFn({ method: "POST" })
       pdf: data.pdfName && !usesYoutube(data.stage) ? await sign(data.pdfName, "entrega") : null,
       data: data.dataName && !usesYoutube(data.stage) ? await sign(data.dataName, "datos") : null,
       nda: await Promise.all(data.ndaNames.map((name, index) => sign(name, `nda${index + 1}`))),
+      annexes: await Promise.all(data.annexNames.map((name, index) => sign(name, `anexo${index + 1}`))),
     };
   });
 
@@ -117,6 +119,10 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
           )
           .max(MAX_MEMBERS)
           .default([]),
+        annexes: z
+          .array(z.object({ path: z.string().min(1).max(400), filename: z.string().min(1).max(200) }))
+          .max(10)
+          .default([]),
       })
       .parse(i),
   )
@@ -127,7 +133,8 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
     if (
       (data.pdf && !data.pdf.path.startsWith(prefix)) ||
       (data.data && !data.data.path.startsWith(prefix)) ||
-      ndaPaths.some((path) => !path.startsWith(prefix))
+      ndaPaths.some((path) => !path.startsWith(prefix)) ||
+      data.annexes.some((item) => !item.path.startsWith(prefix))
     ) {
       throw new Error("Ruta de archivo inválida.");
     }
@@ -166,7 +173,12 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
       data.nda.map(async (item) => ({ member: item.member.trim(), url: await link(item.path) })),
     );
 
+    const annexes = await Promise.all(
+      data.annexes.map(async (item) => ({ name: item.filename, url: await link(item.path) })),
+    );
+
     await appendSubmissionRow({
+      annexes,
       stage: data.stage,
       team: data.team.trim(),
       fullName: data.fullName.trim(),

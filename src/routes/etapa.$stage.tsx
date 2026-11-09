@@ -81,6 +81,7 @@ function StagePage() {
   const [upPdf, setUpPdf] = useState<File | null>(null);
   const [upData, setUpData] = useState<File | null>(null);
   const [upYoutube, setUpYoutube] = useState("");
+  const [annexes, setAnnexes] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [uploadDone, setUploadDone] = useState(false);
@@ -122,7 +123,14 @@ function StagePage() {
     const limit = 100 * 1024 * 1024;
     const ndaRows = ndaRequired
       ? ndaMembers.filter((member) => member.name.trim() || member.file)
-      : [];
+      : ndaMembers.filter((member) => member.file);
+    if (!ndaRequired) {
+      for (const member of ndaRows) {
+        if (member.name.trim().length < 3)
+          return setUploadError("Escribe el nombre del integrante de cada NDA adjunto.");
+      }
+    }
+    if (annexes.length > 10) return setUploadError("Puedes adjuntar hasta 10 anexos.");
     if (ndaRequired) {
       if (ndaRows.length === 0)
         return setUploadError("Sube el NDA firmado por cada integrante del equipo.");
@@ -142,7 +150,8 @@ function StagePage() {
     if (
       (pdfFile && pdfFile.size > limit) ||
       (dataFile && dataFile.size > limit) ||
-      completeNdaRows.some((member) => member.file.size > limit)
+      completeNdaRows.some((member) => member.file.size > limit) ||
+      annexes.some((file) => file.size > limit)
     )
       return setUploadError("Cada archivo debe pesar menos de 100 MB.");
     const password = localStorage.getItem(`ncc_${stageId}_password`);
@@ -152,8 +161,8 @@ function StagePage() {
     }
     setUploading(true);
     try {
-      const slots = !pdfFile && completeNdaRows.length === 0
-        ? { pdf: null, data: null, nda: [] as { path: string; token: string }[] }
+      const slots = !pdfFile && completeNdaRows.length === 0 && annexes.length === 0
+        ? { pdf: null, data: null, nda: [] as { path: string; token: string }[], annexes: [] as { path: string; token: string }[] }
         : await createSubmissionUploads({
         data: {
           stage: stageId,
@@ -163,6 +172,7 @@ function StagePage() {
           dataName: dataFile?.name ?? null,
           ndaNames: completeNdaRows.map((member) => member.file.name),
           ndaMembers: completeNdaRows.map((member) => member.name.trim()),
+          annexNames: annexes.map((file) => file.name),
         },
       });
       const put = async (slot: { path: string; token: string }, file: File) => {
@@ -180,6 +190,11 @@ function StagePage() {
         if (!slot) throw new Error("No se pudo preparar el comprobante del NDA.");
         return put(slot, member.file);
       }));
+      await Promise.all(annexes.map((file, index) => {
+        const slot = slots.annexes[index];
+        if (!slot) throw new Error("No se pudo preparar el anexo.");
+        return put(slot, file);
+      }));
       await submitCaseFiles({
         data: {
           stage: stageId,
@@ -195,6 +210,7 @@ function StagePage() {
             if (!slot) throw new Error("No se pudo registrar el comprobante del NDA.");
             return { path: slot.path, filename: member.file.name, member: member.name.trim() };
           }),
+          annexes: annexes.map((file, index) => ({ path: slots.annexes[index].path, filename: file.name })),
         },
       });
       setUploadDone(true);
@@ -202,6 +218,7 @@ function StagePage() {
       setUpData(null);
       setUpYoutube("");
       setNdaMembers([{ name: "", file: null }]);
+      setAnnexes([]);
     } catch (error) {
       setUploadError(
         error instanceof Error ? error.message : "No se pudo enviar la entrega.",
@@ -215,6 +232,7 @@ function StagePage() {
   const config = STAGE_CONFIG[stageId];
   const ndaRequired = Boolean(content?.nda_enabled);
   const useRegisteredRoster = stageId === "delta" && ndaRequired;
+  const showNda = ndaRequired || Boolean(content?.nda_signing_url) || Boolean(content?.nda_available);
   const ndaComplete = ndaMembers.length > 0 && ndaMembers.every((member) => member.name.trim().length >= 3 && member.file?.type === "application/pdf");
 
   useEffect(() => {
@@ -691,11 +709,11 @@ function StagePage() {
                     </div>
                       </>
                     )}
-                    {ndaRequired && (
+                    {showNda && (
                       <div className="rounded-lg border border-[var(--ncc-steel)] bg-[var(--ncc-cream)] p-4">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <p className="text-sm font-medium text-[var(--ncc-deep)]">
-                            NDA firmado por cada integrante
+                            {ndaRequired ? "NDA firmado por cada integrante" : "NDA firmado (opcional)"}
                           </p>
                           {content?.nda_signing_url ? (
                             <Button asChild size="lg" className="h-auto min-h-14 w-full whitespace-normal px-4 py-4 text-base font-semibold [&_svg]:size-5">
@@ -714,7 +732,9 @@ function StagePage() {
                           </Button> : null}
                         </div>
                         <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                          {content?.nda_signing_url
+                          {!ndaRequired
+                            ? "No es obligatorio. Si ya lo firmaron, pueden adjuntar el comprobante en PDF de cada integrante."
+                            : content?.nda_signing_url
                             ? "Cada integrante debe diligenciar y firmar en el enlace. Adjunta el PDF firmado o comprobante de firma de cada persona. NCC revisará los comprobantes."
                             : "Sube el NDA firmado en PDF por cada integrante."}
                         </p>
@@ -769,9 +789,41 @@ function StagePage() {
                           </Button>
                         )}
                         {useRegisteredRoster && !upTeam && <p className="mt-3 text-sm text-muted-foreground">Selecciona tu equipo para ver sus integrantes.</p>}
-                        <p className="mt-3 text-xs text-muted-foreground">{ndaComplete ? "Comprobantes adjuntos de todos los integrantes." : "Pendiente: comprobante individual de cada integrante para habilitar la entrega."}</p>
+                        {ndaRequired && <p className="mt-3 text-xs text-muted-foreground">{ndaComplete ? "Comprobantes adjuntos de todos los integrantes." : "Pendiente: comprobante individual de cada integrante para habilitar la entrega."}</p>}
                       </div>
                     )}
+                    <div className="rounded-lg border border-[var(--ncc-steel)] bg-[var(--ncc-cream)] p-4">
+                      <label htmlFor="up-annexes" className="block text-sm font-medium text-[var(--ncc-deep)]">
+                        Anexos (opcional)
+                      </label>
+                      <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                        Puedes subir PDF, Excel o cualquier otro archivo de apoyo (hasta 10, máximo 100 MB cada uno).
+                      </p>
+                      <input
+                        id="up-annexes"
+                        type="file"
+                        multiple
+                        disabled={uploading}
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files ?? []);
+                          setAnnexes((current) => [...current, ...files].slice(0, 10));
+                          e.target.value = "";
+                        }}
+                        className="mt-2 w-full rounded-md border border-[var(--ncc-steel)] bg-background px-3 py-2.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-[var(--ncc-mint)] file:px-3 file:py-1.5 file:text-[var(--ncc-deep)]"
+                      />
+                      {annexes.length > 0 && (
+                        <ul className="mt-3 space-y-1">
+                          {annexes.map((file, index) => (
+                            <li key={`${file.name}-${index}`} className="flex items-center justify-between gap-2 text-xs text-[var(--ncc-deep)]">
+                              <span className="truncate">{file.name}</span>
+                              <Button variant="ghost" size="sm" type="button" disabled={uploading}
+                                onClick={() => setAnnexes((current) => current.filter((_, i) => i !== index))}
+                                className="shrink-0 text-xs underline">Quitar</Button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                     <Button
                       type="button"
                       onClick={() => void submitCase()}
