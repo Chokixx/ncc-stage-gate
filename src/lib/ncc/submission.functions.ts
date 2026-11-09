@@ -51,6 +51,7 @@ export const createSubmissionUploads = createServerFn({ method: "POST" })
         pdfName: z.string().min(1).max(200),
         dataName: z.string().min(1).max(200).nullable().optional(),
         ndaNames: z.array(z.string().min(1).max(200)).max(MAX_MEMBERS).default([]),
+        ndaMembers: z.array(z.string().min(2).max(120)).max(MAX_MEMBERS).default([]),
       })
       .parse(i),
   )
@@ -59,6 +60,13 @@ export const createSubmissionUploads = createServerFn({ method: "POST" })
     if (await stageRequiresNda(data.stage)) {
       if (data.ndaNames.length === 0) {
         throw new Error("Esta etapa exige subir el NDA firmado por cada integrante.");
+      }
+      if (data.stage === "delta") {
+        const { validateTeamNda } = await import("./nda-roster.server");
+        await validateTeamNda(data.team, data.ndaMembers);
+        if (data.ndaNames.length !== data.ndaMembers.length || data.ndaNames.some((name) => !name.toLowerCase().endsWith(".pdf"))) {
+          throw new Error("Adjunta un comprobante individual en PDF por cada integrante.");
+        }
       }
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -118,8 +126,15 @@ export const submitCaseFiles = createServerFn({ method: "POST" })
     ) {
       throw new Error("Ruta de archivo inválida.");
     }
-    if ((await stageRequiresNda(data.stage)) && data.nda.length === 0) {
-      throw new Error("Esta etapa exige subir el NDA firmado por cada integrante.");
+    if (await stageRequiresNda(data.stage)) {
+      if (data.nda.length === 0) throw new Error("Esta etapa exige subir el NDA firmado por cada integrante.");
+      if (data.stage === "delta") {
+        const { validateTeamNda } = await import("./nda-roster.server");
+        await validateTeamNda(data.team, data.nda.map((item) => item.member));
+        if (new Set(ndaPaths).size !== ndaPaths.length || data.nda.some((item) => !item.filename.toLowerCase().endsWith(".pdf"))) {
+          throw new Error("Adjunta un PDF individual distinto por cada integrante.");
+        }
+      }
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { appendSubmissionRow } = await import("./submission-sheets.server");
